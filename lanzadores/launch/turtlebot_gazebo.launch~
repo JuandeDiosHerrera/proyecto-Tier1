@@ -1,0 +1,81 @@
+<launch>
+
+  <!-- By default, run in simulation mode -->
+  <arg name="sim" default="true" />
+
+<!-- ################################################################################################################### -->
+  <!--arg name="image" default="/axis/image_color"/>
+	<node pkg="image_view" type="image_view" name="image_view" output="screen" args="image:=$(arg image)">
+	</node-->
+
+  <!--arg name="world_file"  default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/-->
+  <!--arg name="world_file" value="$(find turtlebot_bringup)/launch/worlds/turtlebot_arm_gazebo_world.world"/-->
+  <arg name="world_file" value="$(find turtlebot_bringup)/launch/worlds/estanteria_objetos.world"/>
+
+  <arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
+  <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 --> 
+  <arg name="gui" default="true"/>
+  <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
+  <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro --> 
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="use_sim_time" value="true"/>
+    <arg name="debug" value="false"/>
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="world_name" value="$(arg world_file)"/>
+    <arg name="paused" value="false"/>
+    <arg name="headless" value="false"/>
+  </include>
+  
+<!-- ################################################################################################################### -->
+
+  <!-- Turtlebot Model -->
+  <include file="$(find turtlebot_gazebo)/launch/includes/$(arg base).launch.xml">
+    <arg name="base" value="$(arg base)"/>
+    <arg name="stacks" value="$(arg stacks)"/>
+    <arg name="3d_sensor" value="$(arg 3d_sensor)"/>
+  </include>
+  
+  <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
+    <param name="publish_frequency" type="double" value="30.0" />
+  </node>
+
+
+<!-- ################################################################################################################### -->
+
+  <!-- Arm Gazebo Controler -->
+
+
+  <!-- Load joint controller configurations from YAML file to parameter server 
+  <rosparam file="$(find turtlebot_arm_gazebo_control)/config/turtlebot_arm_gazebo_control.yaml" command="load"/>
+-->
+
+  <!-- load the controllers 
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+	output="screen" 	    args="joint_state_controller
+					  arm_shoulder_pan_joint
+					  arm_shoulder_lift_joint
+					  arm_elbow_flex_joint
+					  arm_wrist_flex_joint
+					  gripper_joint"/>
+ 
+  <node name="arbotix" pkg="arbotix_python" type="arbotix_driver" output="screen">
+      <rosparam file="$(find turtlebot_arm_bringup)/config/arm.yaml" command="load" />
+      <param name="sim" value="true"/>
+  </node>
+
+  <node name="gripper_controller" pkg="arbotix_controllers" type="gripper_controller">
+      <param name="model" value="singlesided"/>
+      <param name="invert" value="true"/>
+      <param name="pad_width" value="0.0254"/>
+  </node>
+
+-->
+  <!-- Load joint state publisher 
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" ></node>
+-->
+
+<!-- ################################################################################################################### -->
+
+
+</launch>

@@ -1,0 +1,28 @@
+<launch>
+
+	<!-- ################################################################################################################ -->
+
+	<include file="$(find mov_autom)/launch/tutorial2RL.launch">
+	</include>
+
+	<!-- ################################################################################################################ -->
+
+
+
+	<!-- Nodos de localizar productos -->
+
+  	<include file="$(find zbar_ros)/launch/kinect.launch">
+	</include>
+
+	
+	<!-- ################################################################################################################ -->
+
+	<!-- Nodos para ejecutar la etapa de localizacion -->
+
+  	<include file="$(find localizacion_productos)/launch/locproductos.launch">
+	</include>
+
+	<!-- Iniciamos la base de datos para guardar los productos -->
+	<node pkg="bbdd_productos" type="bbdd_node" name="base_datos" output="screen" launch-prefix="xterm -e" /> 
+
+</launch>

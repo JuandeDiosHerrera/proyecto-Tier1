@@ -1,0 +1,32 @@
+<launch>
+
+
+
+
+	<!-- Open Zbar -->
+
+  	<include file="$(find zbar_ros)/launch/detector.launch">
+	  <arg name="image_topic" value="camera/rgb/image_raw" />
+  	</include>
+
+	<node name="barcode_scan" pkg="barcode_scan" type="PTZ_barcode_scan">
+			<remap from="/camera/image_raw" to="/image_raw"/>
+	</node>
+	<node name="barcode_manager" pkg="barcode_scan" type="PTZ_barcode_manager" output="screen"> <!-- launch-prefix="xterm -e" -->
+		<remap from="commander" to="/axis_camera/ptz_command"/>
+        <remap from="/home_ptz" to="/axis_camera/home_ptz"/>
+        <remap from="/focus_ptz" to="/axis_camera/focus_ptz"/>
+        <remap from="/camera_params" to="/axis_camera/camera_params"/>
+        <remap from="/barcode_manager" to="/localiza_productos"/>
+    </node>
+
+
+	<!-- Position Detector Node -->
+	<!--<node pkg="position_detector" type="position_detector" name="position_detector" >
+		<rosparam file="$(find position_detector)/param/position_detector.yaml"/>
+	</node>-->
+
+
+	
+
+</launch>

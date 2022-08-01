@@ -1,0 +1,6 @@
+<launch>
+
+	<node pkg="programa_central_turtlebot" type="nodo2" name="nodo2" output="screen" />
+
+
+</launch>

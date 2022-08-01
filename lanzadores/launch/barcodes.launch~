@@ -1,0 +1,30 @@
+<launch>
+	<include file="$(find lanzadores)/launch/minimal.launch"/>
+    <include file="$(find lanzadores)/launch/hokuyo_parametros.launch"/>
+	<include file="$(find axis_camera)/launch/axis.launch">
+		<arg name="ip_address" value="10.10.0.10"/>
+		<arg name="frame_id" value="front_ptz_camera_frame_link"/>
+	</include>
+	<node name="mapper" pkg="nav2d_karto" type="mapper"/>
+	<node name="map_to_odom" pkg="tf" type="static_transform_publisher"
+			args="0.0 0.0 0.0 0.0 0.0 0.0 /map /odom 40"/> <!-- Crea el tf del mapa y la odometría-->
+	<node name="barcode_scan" pkg="barcode_scan" type="PTZ_barcode_scan">
+		<remap from="/camera/image_raw" to="/image_raw"/>
+		<remap from="/camera/depth/points" to="/camera/depth_registered/points"/>
+		</node>
+	<node name="odom_to_base" pkg="tf" type="static_transform_publisher"
+			args="0.0 0.0 0.0 0.0 0.0 0.0 /odometry_base /base_footprint 40"/> <!--Crea el tf del mapa y la odometría-->
+<!--	<node name="odom_to_base" pkg="tf" type="static_transform_publisher"
+			args="0.0 0.0 0.0 0.0 0.0 0.0 /odom /base_link 40"/> -->
+	<node name="barcode_scan" pkg="barcode_scan" type="PTZ_barcode_scan">
+		<remap from="/camera/image_raw" to="/image_raw"/>
+	</node>
+	<node name="barcode_manager" pkg="barcode_scan" type="PTZ_barcode_manager">
+		<remap from="/commander" to="/axis_camera/ptz_command"/>
+        <remap from="/home_ptz" to="/axis_camera/home_ptz"/>
+        <remap from="/focus_ptz" to="/axis_camera/focus_ptz"/>
+        <remap from="/camera_params" to="/axis_camera/camera_params"/>
+	</node>
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/> <!-- Necesario para las transformaciones de la PTZ -->
+
+</launch>

@@ -1,0 +1,13 @@
+<launch>
+
+ <node name="laser_driver" pkg="hokuyo_node" type="hokuyo_node">
+	<remap from="scan" to="base_scan" />   
+	<param name="frame_id" value="base_laser_link" />
+	<param name="port" type="string" value="/dev/serial/by-id/usb-Hokuyo_Data_Flex_for_USB_URG-Series_USB_Driver-if00"/>
+	<param name="skip" type="int" value="1"/>
+	<param name="min_ang" type="double" value="-1.6"/>
+	<param name="max_ang" type="double" value="1.6"/>
+	<param name="calibrate_time" type="bool" value="true"/>
+ </node>
+
+</launch>

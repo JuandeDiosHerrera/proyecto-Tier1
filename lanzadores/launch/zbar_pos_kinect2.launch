@@ -1,0 +1,21 @@
+<launch>
+
+
+
+
+	<!-- Open Zbar -->
+
+  	<include file="$(find zbar_ros)/launch/detector2.launch">
+	  <arg name="image_topic" value="camera/rgb/image_raw" />
+  	</include>
+
+
+	<!-- Position Detector Node -->
+	<node pkg="position_detector" type="position_detector_kinect2" name="position_detector_kinect2" output="screen" >
+		<rosparam file="$(find position_detector)/param/position_detector_kinect2.yaml"/>
+	</node>
+
+
+	
+
+</launch>

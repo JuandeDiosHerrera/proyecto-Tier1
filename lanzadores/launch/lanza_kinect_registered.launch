@@ -1,0 +1,16 @@
+<launch>
+
+	<!--include file="$(find lanzadores)/launch/3dsensor.launch"/-->
+
+	<include file="$(find openni_launch)/launch/openni.launch"/>
+
+
+ 	<!-- Set the Kinect's parameters, like resolution -->
+ 	<param name="/camera/driver/depth_mode" value="2"/> 		
+ 	<param name="/camera/driver/image_mode" value="2"/>		<!-- 1:= 1280x960 2:= 640x480-->
+ 	<param name="/camera/driver/depth_registration" value="true"/> 
+
+	
+
+
+</launch>
