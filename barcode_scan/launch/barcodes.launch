@@ -1,0 +1,28 @@
+<!-- Este launch es diferente al de lanzadores porque está pensado como parte del programa final. 
+El de lanzadores es autocontenido para hacer pruebas aisladas -->
+
+<launch>
+	<include file="$(find axis_camera)/launch/axis.launch" >
+		<arg name="ip_address" value="10.10.0.10"/>
+		<arg name="frame_id" value="front_ptz_camera_frame_link"/>
+	</include>
+
+    <!--Estos nodos ahora se lanzan en localiza_productos_demoMB.launch -->
+	<node name="barcode_scan" pkg="barcode_scan" type="PTZ_barcode_scan">
+			<remap from="/camera/image_raw" to="/image_raw"/>
+	</node>
+	<node name="barcode_manager" pkg="barcode_scan" type="PTZ_barcode_manager">
+		<remap from="commander" to="/axis_camera/ptz_command"/>
+        <remap from="/home_ptz" to="/axis_camera/home_ptz"/>
+        <remap from="/focus_ptz" to="/axis_camera/focus_ptz"/>
+        <remap from="/camera_params" to="/axis_camera/camera_params"/>
+        <remap from="/barcode_manager" to="/localiza_productos"/>
+	</node>
+	
+	<node name="zbar" pkg="zbar_ros" type="barcode_detector">
+        <remap from="/camera/rgb/image_raw" to="/image_raw"/>	
+	</node>
+
+
+	<node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher"/>
+</launch>
