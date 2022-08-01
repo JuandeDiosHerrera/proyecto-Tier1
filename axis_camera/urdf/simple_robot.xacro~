@@ -1,0 +1,36 @@
+<?xml version="1.0" ?>
+<robot name="simple_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+	<xacro:include filename="$(find axis_camera)/urdf/axis_m5525.urdf.xacro"/>
+	<link name="dummy">
+	</link>
+	<link name="base_link">
+		<visual>
+			<geometry>
+				<cylinder length="0.6" radius="0.2"/>
+			</geometry>
+			<material name="blue"/>
+		</visual>
+		<collision>
+			<geometry>
+				<cylinder length="0.6" radius="0.2"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<mass value="10.0"/>
+			<inertia
+				ixx="10.0" ixy="0.0" ixz="0.0"
+				iyy="10.0" iyz="0.0"
+				izz="10.0"/>
+		</inertial>
+	</link>
+	<joint name="dummy_joint" type="fixed">
+		<parent link="dummy"/>
+		<child link="base_link"/>
+	</joint>
+	<xacro:sensor_axis_m5525 prefix="front_ptz_camera" parent="base_link">
+		<origin xyz="0 0 0.3" rpy="0 ${-PI/2} 0"/>
+	</xacro:sensor_axis_m5525>
+	<gazebo reference="base_link">
+		<material>Gazebo/Blue</material>
+	</gazebo>
+</robot>

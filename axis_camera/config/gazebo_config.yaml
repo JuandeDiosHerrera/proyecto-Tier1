@@ -1,0 +1,32 @@
+ptz: true
+autoflip: false
+eflip: false
+pan_joint: front_ptz_camera_pan_joint
+tilt_joint: front_ptz_camera_tilt_joint
+frame_joint: front_ptz_camera_frame_joint
+pan_joint_command: /axis_camera/pan_position_controller/command
+tilt_joint_command: /axis_camera/tilt_position_controller/command
+frame_joint_command: /axis_camera/frame_position_controller/command
+min_pan_value: -2.97
+max_pan_value: 2.97
+min_tilt_value: 0
+max_tilt_value: 1.57
+invert_ptz: false
+axis_camera:
+  #Publish all joint states
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  # Position Controllers
+  pan_position_controller:
+    type: position_controllers/JointPositionController
+    joint: front_ptz_camera_pan_joint
+        
+  tilt_position_controller:
+    type: position_controllers/JointPositionController
+    joint: front_ptz_camera_tilt_joint
+
+  frame_position_controller:
+    type: position_controllers/JointPositionController
+    joint: front_ptz_camera_frame_joint
