@@ -1,0 +1,41 @@
+<library path="lib/librviz_plugin_tutorials">
+  <class name="rviz_plugin_tutorials/Mapeo"
+         type="rviz_plugin_tutorials::PanelMapeo"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel de control de la etapa de mapeo.
+    </description>
+  </class>
+  
+  <class name="rviz_plugin_tutorials/Localizacion"
+         type="rviz_plugin_tutorials::PanelLocalizacion"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel de control de la etapa de localizacion de productos.
+    </description>
+  </class>
+
+  <class name="rviz_plugin_tutorials/Guiado"
+         type="rviz_plugin_tutorials::PanelGuiado"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel de control de la etapa de guiado.
+    </description>
+  </class>
+
+  <class name="rviz_plugin_tutorials/Carga"
+         type="rviz_plugin_tutorials::PanelCarga"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel de control de carga.
+    </description>
+  </class>
+
+  <class name="rviz_plugin_tutorials/Brazo"
+         type="rviz_plugin_tutorials::PanelBrazo"
+         base_class_type="rviz::Panel">
+    <description>
+      Panel de movimientos del pxpincher.
+    </description>
+  </class>
+</library>

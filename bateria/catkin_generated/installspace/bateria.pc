@@ -1,0 +1,8 @@
+prefix=/home/javi/catkin_ws/install
+
+Name: bateria
+Description: Description of bateria
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/javi/catkin_ws/install/lib 
+Requires: diagnostic_msgs roscpp std_msgs actionlib kobuki_msgs
