@@ -28,7 +28,7 @@ def funcion():
 	image_copy = img.copy()
 
 	# Obtención de los rectángulos que circunscriben a los códigos de barras
-    	minRect = [None]*len(contours)
+	minRect = [None]*len(contours)
 	#print(range(len(contours[0])))
 	#print(contours)
 	for i, c in enumerate(contours):
