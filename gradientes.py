@@ -7,8 +7,8 @@ from os.path import isfile, join
 import numpy
 
 def funcion():
-
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos'
+	mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
+	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
