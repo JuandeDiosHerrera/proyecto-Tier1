@@ -1,4 +1,3 @@
-from types import NoneType
 import cv2
 from matplotlib import pyplot as plt
 from os import listdir
