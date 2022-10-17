@@ -13,6 +13,8 @@ def funcion():
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
+		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
+
 		height, width, channels = images[n].shape 
 
 		gray = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)
@@ -60,7 +62,7 @@ def funcion():
 		closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
 		#cv2.imshow('cierre', closed)
 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 75))
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 150))
 		opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
 		#opened = cv2.erode(closed, kernel2, iterations = 4)
 		#opened = cv2.dilate(closed, kernel2, iterations = 4)
@@ -84,28 +86,28 @@ def funcion():
 
 		image_copy = images[n].copy()
 
+		"""
 		# Para sacar solo las esquinas del contorno no el contorno entero	
 		for i in range(len(contours[0])):
 			x = contours[0][i][0][0]
 			y = contours[0][i][0][1]
 			#print(x,y)
-			cv2.circle(image_copy, (x,y), 7, (0,0,255), -1)
+			cv2.circle(image_copy, (x,y), 20, (0,0,255), -1)
 			#cv2.drawContours(image_copy, [contours[i], [], (0,0,255), 6)
 			#cv2.drawContours(image_copy, [contours[i], 1, (0,0,255), 6)
-
+		"""
 
 		for i in contours:
 			M = cv2.moments(i)
-			if M['m00'] != 0:
-				cx = int(M['m10']/M['m00'])
-				cy = int(M['m01']/M['m00'])
-				#cv2.drawContours(image_copy, [i], -1, (0, 255, 0), 6)
-				cv2.circle(image_copy, (cx, cy), 7, (255, 0, 0), -1)
+			#if M['m00'] != 0:
+			cx = int(M['m10']/M['m00'])
+			cy = int(M['m01']/M['m00'])
+			#cv2.drawContours(image_copy, [i], -1, (0, 255, 0), 6)
+			cv2.circle(image_copy, (cx, cy), 20, (255, 0, 0), -1)
 
 		masked = cv2.bitwise_and(images[n], images[n], mask=opened)
 
 		
-
 		"""
 		cv2.imshow('original', img)
 		cv2.imshow('binaria', opened)
@@ -125,10 +127,10 @@ def funcion():
 
 		plt.subplot(234),plt.imshow(binaria1,cmap = 'gray')
 		plt.title('Binaria Adaptativa'), plt.xticks([]), plt.yticks([])
-		"""
-		plt.subplot(235),plt.imshow(binaria2,cmap = 'gray')
-		plt.title('Binaria Adaptativa flag inverso'), plt.xticks([]), plt.yticks([])
-		"""
+		
+		plt.subplot(235),plt.imshow(image_copy,cmap = 'gray')
+		plt.title('Centros de masa'), plt.xticks([]), plt.yticks([])
+		
 		plt.subplot(236),plt.imshow(masked)
 		plt.title('Barcode detection'), plt.xticks([]), plt.yticks([])
 		plt.show()
