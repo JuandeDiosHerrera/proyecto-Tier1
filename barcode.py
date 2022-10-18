@@ -15,7 +15,7 @@ for n in range(0, len(onlyfiles)):
     images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 
     ok, decoded_info, decoded_type, corners = bardet.detectAndDecode(images[n])
-   
+    
     """
     plt.subplot(111),plt.imshow(images[n])
     plt.title('Image'), plt.xticks([]), plt.yticks([])

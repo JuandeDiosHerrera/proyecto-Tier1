@@ -21,11 +21,11 @@ def funcion():
 		edges = cv2.Canny(images[n],100,200)
 		#cv2.imshow('edges', edges)
 
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (75, 7))
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 7))
 		closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel1)
 		#cv2.imshow('cierre', closed)
 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 100))
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 7))
 		opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
 
 		# Se buscan los contornos del rectángulo y se pintan
