@@ -29,7 +29,8 @@ for n in range(0, len(onlyfiles)):
     print('')
     """
     lista_anchos = []
-    lista_alturas = []    
+    lista_alturas = []  
+    lista_areas = []  
 
     img_copy = images[n].copy()
     #print(corners)
@@ -59,10 +60,13 @@ for n in range(0, len(onlyfiles)):
             #print(lista_y)
             lista_anchos.append(ancho)
             lista_alturas.append(alto)
+            lista_areas.append(ancho*alto)
 
             #print(lista_alturas)
             #print('\n')
-            
+
+        print(lista_alturas,lista_anchos,lista_areas)    
+
         plt.subplot(121),plt.imshow(images[n])
         plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
@@ -74,9 +78,6 @@ for n in range(0, len(onlyfiles)):
         plt.title('Image'), plt.xticks([]), plt.yticks([])
         plt.show()
         """
-
-    del lista_x
-    del lista_y
 """
 cv2.imshow('Image', img)
 cv2.waitKey()
