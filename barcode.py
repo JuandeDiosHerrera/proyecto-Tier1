@@ -6,8 +6,8 @@ import numpy
  
 bardet = cv2.barcode_BarcodeDetector()
 
-mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
-#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos'
+#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
+mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos'
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 images = numpy.empty(len(onlyfiles), dtype=object)
 for n in range(0, len(onlyfiles)):
@@ -28,6 +28,8 @@ for n in range(0, len(onlyfiles)):
     print('Corners:', corners)
     print('')
     """
+    lista_anchos = []
+    lista_alturas = []    
 
     img_copy = images[n].copy()
     #print(corners)
@@ -39,13 +41,28 @@ for n in range(0, len(onlyfiles)):
         plt.show()
 
     else:
-        for i in range(len(corners)):  
-            for j in range(4):              
-                x = corners[i][j][0]                #Desde esquina inferior izquierda en sentido horario
-                y = corners[i][j][1]
+        for i in range(len(corners)):  # Para todos los códigos de barras
+            lista_x = []
+            lista_y = []
+            for j in range(4):  # Para un código de barras concreto           
+                x = int(corners[i][j][0])                #Desde esquina inferior izquierda en sentido horario
+                y = int(corners[i][j][1])
+                lista_x.append(x)
+                lista_y.append(y)
+
                 #print(x,y)
-                cv2.circle(img_copy, (int(x),int(y)), 15, (255,0,0), -1)
-        
+                cv2.circle(img_copy, (int(x),int(y)), 15, (255,0,0), -1) 
+
+            ancho = lista_x[3] - lista_x[0]
+            alto = lista_y[0] - lista_y[2]
+            #print(ancho,alto)
+            #print(lista_y)
+            lista_anchos.append(ancho)
+            lista_alturas.append(alto)
+
+            #print(lista_alturas)
+            #print('\n')
+            
         plt.subplot(121),plt.imshow(images[n])
         plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
@@ -57,6 +74,9 @@ for n in range(0, len(onlyfiles)):
         plt.title('Image'), plt.xticks([]), plt.yticks([])
         plt.show()
         """
+
+    del lista_x
+    del lista_y
 """
 cv2.imshow('Image', img)
 cv2.waitKey()
