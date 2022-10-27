@@ -8,7 +8,9 @@ import numpy
 
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos'
+	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
+	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -51,13 +53,16 @@ def funcion():
 		"""
 		#######################################################################Forma 2##################################################################################3
 		# Cálculo gradiente absoluto 
-		gradient = cv2.subtract(grad_x, grad_y)
-		gradient = cv2.convertScaleAbs(gradient)
-		#blurred = cv2.blur(gradient, (9, 9))
+		gradient1 = cv2.subtract(grad_x, grad_y)
+		gradient2 = cv2.convertScaleAbs(gradient1)
+
+		# Suavizado
+		blurred = cv2.blur(gradient2, (25, 25))
 
 		# Se binariza la imagen y se cierra para formar el rectángulo que engloba al código de barras
-		umbral,binaria = cv2.threshold(gradient,200,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+		umbral,binaria = cv2.threshold(blurred,200,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 		#cv2.imshow('binaria', binaria)
+
 		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (75, 7))
 		closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
 		#cv2.imshow('cierre', closed)
@@ -67,8 +72,27 @@ def funcion():
 		#opened = cv2.erode(closed, kernel2, iterations = 4)
 		#opened = cv2.dilate(closed, kernel2, iterations = 4)
 		
-		binaria1 = cv2.adaptiveThreshold(gradient,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,251,0)
+		binaria1 = cv2.adaptiveThreshold(gradient2,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,251,0)
 		#binaria2 = cv2.adaptiveThreshold(gradient,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,251,0)
+
+		"""
+		plt.subplot(231),plt.imshow(images[n])
+		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(232),plt.imshow(grad_x,cmap = 'gray')
+		plt.title('gradiente x'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(233),plt.imshow(grad_y,cmap = 'gray')
+		plt.title('gradiente y'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(234),plt.imshow(gradient1,cmap = 'gray')
+		plt.title('gradiente restado'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(235),plt.imshow(gradient2,cmap = 'gray')
+		plt.title('gradiente restado y valor absoluto'), plt.xticks([]), plt.yticks([])
+		plt.show()
+		"""
+
 		"""
 		print('Maximo binaria:',binaria.max())
 		print('\n')
@@ -96,17 +120,17 @@ def funcion():
 			#cv2.drawContours(image_copy, [contours[i], [], (0,0,255), 6)
 			#cv2.drawContours(image_copy, [contours[i], 1, (0,0,255), 6)
 		"""
-
+		
 		for i in contours:
 			M = cv2.moments(i)
 			#if M['m00'] != 0:
 			cx = int(M['m10']/M['m00'])
 			cy = int(M['m01']/M['m00'])
 			#cv2.drawContours(image_copy, [i], -1, (0, 255, 0), 6)
-			cv2.circle(image_copy, (cx, cy), 20, (255, 0, 0), -1)
+			cv2.circle(image_copy, (cx, cy), 20, (131, 255, 0), -1)
+		
 
 		masked = cv2.bitwise_and(images[n], images[n], mask=opened)
-
 		
 		"""
 		cv2.imshow('original', img)
@@ -114,6 +138,26 @@ def funcion():
 		cv2.imshow('Codigo aislado', masked)
 		cv2.imshow('Contornos', image_copy)
 		cv2.waitKey() 
+		"""
+
+		plt.subplot(231),plt.imshow(images[n])
+		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(232),plt.imshow(gradient2,cmap = 'gray')
+		plt.title('Resta y valor abs'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
+		plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(234),plt.imshow(binaria,cmap = 'gray')
+		plt.title('Binaria'), plt.xticks([]), plt.yticks([])
+		
+		plt.subplot(235),plt.imshow(closed,cmap = 'gray')
+		plt.title('Cierre'), plt.xticks([]), plt.yticks([])
+		
+		plt.subplot(236),plt.imshow(opened,cmap = 'gray')
+		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+		plt.show()
 
 		"""
 		plt.subplot(231),plt.imshow(images[n])
@@ -134,7 +178,7 @@ def funcion():
 		plt.subplot(236),plt.imshow(masked)
 		plt.title('Barcode detection'), plt.xticks([]), plt.yticks([])
 		plt.show()
-
+		"""
 	#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################
 
 if __name__ == "__main__":              
