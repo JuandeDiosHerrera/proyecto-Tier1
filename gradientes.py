@@ -73,13 +73,13 @@ def funcion():
 		umbral,binaria = cv2.threshold(blurred,150,255,cv2.THRESH_BINARY)
 		#cv2.imshow('binaria', binaria)
 		#print(binaria.max())
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))   #30,7
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   
 		#print(kernel1)
-		closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
+		opened = cv2.morphologyEx(binaria, cv2.MORPH_OPEN, kernel1)
 		#cv2.imshow('cierre', closed)
 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
-		opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
+		closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel2)
 		#opened = cv2.erode(closed, kernel2, iterations = 1)
 		#opened = cv2.dilate(closed, kernel2, iterations = 4)
 		
@@ -163,11 +163,11 @@ def funcion():
 		plt.subplot(234),plt.imshow(binaria,cmap = 'gray')
 		plt.title('Binaria'), plt.xticks([]), plt.yticks([])
 		
-		plt.subplot(235),plt.imshow(closed,cmap = 'gray')
-		plt.title('Cierre'), plt.xticks([]), plt.yticks([])
-		
-		plt.subplot(236),plt.imshow(opened,cmap = 'gray')
+		plt.subplot(235),plt.imshow(opened,cmap = 'gray')
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+		
+		plt.subplot(236),plt.imshow(closed,cmap = 'gray')
+		plt.title('Cierre'), plt.xticks([]), plt.yticks([])
 		plt.show()
 
 		"""
