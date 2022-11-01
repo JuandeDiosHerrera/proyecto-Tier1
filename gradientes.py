@@ -55,21 +55,32 @@ def funcion():
 		# Cálculo gradiente absoluto 
 		gradient1 = cv2.subtract(grad_x, grad_y)
 		gradient2 = cv2.convertScaleAbs(gradient1)
+		#print(gradient2.max())
+		#print(gradient2.min())
 
-		# Suavizado
-		blurred = cv2.blur(gradient2, (25, 25))
+		# Suavizado: probar cuál funciona mejor
+		#blurred = cv2.blur(gradient2, (25, 25))
+		blurred = cv2.GaussianBlur(gradient2,(25,25),0)
+		#blurred = cv2.boxFilter(gradient2, -1, (25,25))
 
+		#blurred = cv2.medianBlur(gradient2,5)
+		#blurred = cv2.bilateralFilter(gradient2,9,75,75)
+
+
+		#print(blurred.max())
+		#print(blurred.min())
 		# Se binariza la imagen y se cierra para formar el rectángulo que engloba al código de barras
-		umbral,binaria = cv2.threshold(blurred,200,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+		umbral,binaria = cv2.threshold(blurred,150,255,cv2.THRESH_BINARY)
 		#cv2.imshow('binaria', binaria)
-
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (75, 7))
+		#print(binaria.max())
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))   #30,7
+		#print(kernel1)
 		closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
 		#cv2.imshow('cierre', closed)
 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (7, 150))
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
 		opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
-		#opened = cv2.erode(closed, kernel2, iterations = 4)
+		#opened = cv2.erode(closed, kernel2, iterations = 1)
 		#opened = cv2.dilate(closed, kernel2, iterations = 4)
 		
 		binaria1 = cv2.adaptiveThreshold(gradient2,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,251,0)
