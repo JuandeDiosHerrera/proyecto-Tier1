@@ -64,7 +64,7 @@ def funcion():
 		masked = cv2.bitwise_and(images[n], images[n], mask=opened)
 		"""
 		
-		#Búsqueda de las líneas con la transformada de Hough estándary la probabilística	
+		#Búsqueda de las líneas con la transformada de Hough estándar y la probabilística	
 			lines1 = cv2.HoughLines(edges, 1, np.pi / 180, 150, None, 0, 0)
 		img_copy1 = img.copy()
 		#print(lines1)
