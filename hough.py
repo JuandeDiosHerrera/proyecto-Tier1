@@ -21,12 +21,16 @@ def funcion():
 		gray = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)
 
 		edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
-
+		#print(edges)
 		height, width = edges.shape 
+		#print(height,width)
 
-		#Búsqueda de líneas horizontales: en el rango [80º,100º]
-		lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=1200,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
-		#print(len(lines))
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto) 
+		closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+
+		#Búsqueda de líneas horizontales: en el rango [85º,95º]
+		lines = cv2.HoughLines(closed,rho=1,theta=numpy.pi/180,threshold=2000,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
+		print(len(lines))
 		linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
 		img_copy1 = images[n].copy()
 		img_copy2 = images[n].copy()	
@@ -39,17 +43,19 @@ def funcion():
 				#print(i)
 				rho = lines[i][0][0]
 				theta = lines[i][0][1]
+				#print(rho,theta)
 				a = math.cos(theta)
 				b = math.sin(theta)
-				x0 = a * rho
-				y0 = b * rho
-				pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-				pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+				x0 = a * rho				# x = rho * cos(theta)
+				y0 = b * rho				# y = rho * sin(theta)
+				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho) 
+				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
+				print(pt1,pt2)
 				cv2.line(img_copy1, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 
 		# Draw the lines
 		if linesP is not None:
-			#print('holw')
+			#print('hola')
 			for i in range(0, len(linesP)):
 				l = linesP[i][0]
 				cv2.line(img_copy2, (l[0], l[1]), (l[2], l[3]), (255,0,0), 3, cv2.LINE_AA)
@@ -63,8 +69,8 @@ def funcion():
 		plt.subplot(223),plt.imshow(img_copy1)
 		plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
 		
-		plt.subplot(224),plt.imshow(img_copy2)
-		plt.title('Líneas detectadas prob'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(224),plt.imshow(closed,cmap = 'gray')
+		plt.title('Rellenar bordes'), plt.xticks([]), plt.yticks([])		
 		plt.show()
 		
 		#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################
