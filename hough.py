@@ -28,18 +28,52 @@ def funcion():
 		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto) 
 		closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
-		#Búsqueda de líneas horizontales: en el rango [85º,95º]
+		#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 		lineas_detectadas = 2000
 		umbral = 100
 		while(lineas_detectadas>15):
 			lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
 			# print(lines)			
 			lineas_detectadas = len(lines)
-			print(len(lines),umbral)			
+			#print(len(lines),umbral)			
 			umbral += 100
 
-		print('')		
+		# print(lines)
+		# print('')
 
+		#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
+		vector_alturas = []
+		primera_iter = 1
+		distinto = 1
+		for i in lines:
+			print('rho:',i[0][0])
+			distinto = 1
+			if primera_iter == 1:
+				vector_alturas.append(i[0][0])
+				primera_iter = 0	
+
+			if primera_iter == 0:
+				for j in vector_alturas:
+					print('elemento vector:',j)
+					if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 100 píxeles se considera que representan la misma horizontal
+						print('Misma línea----------------------')
+						print('Vector_alturas:',vector_alturas)
+						print('')
+						distinto = 0
+						break
+
+				if distinto == 1:						#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
+					vector_alturas.append(i[0][0])		#los añadimos
+					print('Añadimos línea-----------------------')
+					print('Vector_alturas:',vector_alturas)
+					print('')
+
+		# print('Vector alturas:',vector_alturas)			
+		# print('')
+
+		# print(vector_alturas)
+		# print('Longitud alturas:',len(vector_alturas))
+			
 		linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
 		img_copy1 = images[n].copy()
 		img_copy2 = images[n].copy()	
