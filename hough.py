@@ -35,52 +35,15 @@ def funcion():
 			lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
 			# print(lines)			
 			lineas_detectadas = len(lines)
-			#print(len(lines),umbral)			
+			print(len(lines),umbral)			
 			umbral += 100
 
-		# print(lines)
-		# print('')
+		#print(lines)
+		#print('')
 
-		#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
-		vector_alturas = []
-		primera_iter = 1
-		distinto = 1
-		for i in lines:
-			print('rho:',i[0][0])
-			distinto = 1
-			if primera_iter == 1:
-				vector_alturas.append(i[0][0])
-				primera_iter = 0	
-
-			if primera_iter == 0:
-				for j in vector_alturas:
-					print('elemento vector:',j)
-					if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 100 píxeles se considera que representan la misma horizontal
-						print('Misma línea----------------------')
-						print('Vector_alturas:',vector_alturas)
-						print('')
-						distinto = 0
-						break
-
-				if distinto == 1:						#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
-					vector_alturas.append(i[0][0])		#los añadimos
-					print('Añadimos línea-----------------------')
-					print('Vector_alturas:',vector_alturas)
-					print('')
-
-		# print('Vector alturas:',vector_alturas)			
-		# print('')
-
-		# print(vector_alturas)
-		# print('Longitud alturas:',len(vector_alturas))
-			
-		linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
 		img_copy1 = images[n].copy()
-		img_copy2 = images[n].copy()	
-		
-		#print(linesP)
-		#print(lines1)
-		#print(lines1[0][2][0])			#Campo 0: nada, campo 1: el par (rho, theta), campo 2: rho [0] y theta [1]
+		img_copy2 = images[n].copy()
+
 		if lines is not None:
 			for i in range(len(lines)):
 				#print(i)
@@ -96,12 +59,75 @@ def funcion():
 				#print(pt1,pt2)
 				cv2.line(img_copy1, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 
-		# Draw the lines
-		if linesP is not None:
-			#print('hola')
-			for i in range(0, len(linesP)):
-				l = linesP[i][0]
-				cv2.line(img_copy2, (l[0], l[1]), (l[2], l[3]), (255,0,0), 3, cv2.LINE_AA)
+		#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
+		vector_alturas = []
+		vector_angulos = []
+		primera_iter = 1
+		distinto = 1
+		
+		if lines is not None:
+			for i in lines:
+				print('rho:',i[0][0])
+				distinto = 1
+				if primera_iter == 1:
+					vector_alturas.append(i[0][0])
+					vector_angulos.append(i[0][1])
+					primera_iter = 0	
+
+				if primera_iter == 0:
+					for j in vector_alturas:
+						print('elemento vector:',j)
+						if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 100 píxeles se considera que representan la misma horizontal
+							print('Misma línea----------------------')
+							print('Vector_alturas:',vector_alturas)
+							print('Vector_angulos:',vector_angulos)
+							print('')
+							distinto = 0
+							break
+
+					if distinto == 1:						#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
+						vector_alturas.append(i[0][0])		#los añadimos
+						vector_angulos.append(i[0][1])
+						print('Añadimos línea-----------------------')
+						print('Vector_alturas:',vector_alturas)
+						print('Vector_angulos:',vector_angulos)
+						print('')
+
+		# print('Vector alturas:',vector_alturas)			
+		# print('')
+
+		# print(vector_alturas)
+		# print('Longitud alturas:',len(vector_alturas))
+
+		#Pinto las líneas definitivas
+		if lines is not None:
+			for i in range(len(vector_alturas)):
+				#print(i)
+				rho = vector_alturas[i]
+				theta = vector_angulos[i]
+				#print(rho,theta)
+				a = math.cos(theta)
+				b = math.sin(theta)
+				x0 = a * rho				# x = rho * cos(theta)
+				y0 = b * rho				# y = rho * sin(theta)
+				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho) 
+				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
+				#print(pt1,pt2)
+				cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
+
+		#Transformada de Hough probabilística	
+		# linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
+	
+		# #print(linesP)
+		# #print(lines1)
+		# #print(lines1[0][2][0])			#Campo 0: nada, campo 1: el par (rho, theta), campo 2: rho [0] y theta [1]
+		
+		# # Draw the lines
+		# if linesP is not None:
+		# 	#print('hola')
+		# 	for i in range(0, len(linesP)):
+		# 		l = linesP[i][0]
+		# 		cv2.line(img_copy2, (l[0], l[1]), (l[2], l[3]), (255,0,0), 3, cv2.LINE_AA)
 
 		plt.subplot(221),plt.imshow(images[n])
 		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -112,8 +138,8 @@ def funcion():
 		plt.subplot(223),plt.imshow(img_copy1)
 		plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
 		
-		plt.subplot(224),plt.imshow(img_copy2,cmap = 'gray')
-		plt.title('Porbabilístico'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(224),plt.imshow(img_copy2)
+		plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])		
 		plt.show()
 		
 		#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################
