@@ -105,8 +105,8 @@ def funcion():
 				#print(i)
 				rho = vector_alturas[i]
 				theta = vector_angulos[i]
-				#print(rho,theta)
-				a = math.cos(theta)
+				print(rho,theta)
+				a = math.cos(theta) 
 				b = math.sin(theta)
 				x0 = a * rho				# x = rho * cos(theta)
 				y0 = b * rho				# y = rho * sin(theta)
@@ -114,6 +114,13 @@ def funcion():
 				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
 				#print(pt1,pt2)
 				cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
+
+		tam_vector = len(vector_alturas)
+
+		#Ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
+		alturas_ordenadas, angulos_ordenados = zip(*sorted(zip(vector_alturas, vector_angulos)))
+		# print('Vector alturas ordenados:',alturas_ordenadas)
+		# print('Vector ángulos ordenados:',angulos_ordenados)
 
 		#Transformada de Hough probabilística	
 		# linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
