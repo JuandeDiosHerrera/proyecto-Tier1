@@ -11,25 +11,46 @@ def funcion():
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
+	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
+		hsv = cv2.cvtColor(images[n], cv2.COLOR_BGR2HSV)
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 
 		height, width, channels = images[n].shape 
-
-		gray = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)
 		#print('alto:', height)
 		#print('ancho:', width)
+
+		gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
+
+		# Aislamos por el color las bandas horizontales
+		mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))
+
+		# kernel1 = numpy.ones((25,25),numpy.uint8)
+		# print(kernel1)
+		kernel_banda1 = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 100))		# (Ancho, alto) 
+		opened_banda = cv2.morphologyEx(mask1, cv2.MORPH_OPEN, kernel_banda1)
+
+		kernel_banda2 = cv2.getStructuringElement(cv2.MORPH_RECT, (4000, 1))		# (Ancho, alto) 
+		closed_banda = cv2.morphologyEx(opened_banda, cv2.MORPH_CLOSE, kernel_banda2)
+
+		# ## mask o yellow (15,0,0) ~ (36, 255, 255)
+		# mask2 = cv2.inRange(hsv, (15,0,0), (36, 255, 255))
+
+		# ## final mask and masked
+		# mask = cv2.bitwise_or(mask1, mask2)
+		target = cv2.bitwise_and(gray,gray, mask=closed_banda)
+		
 		"""
 		gaus = cv2.GaussianBlur(gray,(5,5),0)
 		"""
 		# Cálculo gradientes y conversión a valores enteros positivos
-		grad_x = cv2.Sobel(gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+		grad_x = cv2.Sobel(target, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 		abs_grad_x = cv2.convertScaleAbs(grad_x)
 
-		grad_y = cv2.Sobel(gray, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+		grad_y = cv2.Sobel(target, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 		abs_grad_y = cv2.convertScaleAbs(grad_y)
 		"""
 		grad = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)

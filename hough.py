@@ -12,13 +12,14 @@ def funcion():
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
+	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 
-		gray = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)
+		gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
 
 		edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
 		#print(edges)
@@ -31,7 +32,7 @@ def funcion():
 		#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 		lineas_detectadas = 2000
 		umbral = 100
-		while(lineas_detectadas>15):
+		while(lineas_detectadas>25):
 			lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
 			# print(lines)			
 			lineas_detectadas = len(lines)
@@ -114,7 +115,7 @@ def funcion():
 				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
 				#print(pt1,pt2)
 				cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
-
+		
 		tam_vector = len(vector_alturas)
 
 		#Ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
