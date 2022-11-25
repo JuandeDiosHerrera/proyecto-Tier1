@@ -16,31 +16,31 @@ def funcion():
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
-		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
+		images[n] = cv2.imread( join(mypath,onlyfiles[n]) )
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 
 		gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
 
 		edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
 		#print(edges)
-		height, width = edges.shape 
+		height, width = edges.shape
 		#print(height,width)
 
-		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto) 
+		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto)
 		closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
 		#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 		lineas_detectadas = 2000
 		umbral = 100
-		while(lineas_detectadas>25):
+		while(lineas_detectadas>15):
 			lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
-			# print(lines)			
+			# print(lines)
 			lineas_detectadas = len(lines)
-			print(len(lines),umbral)			
+			print(len(lines),umbral)
 			umbral += 100
 
 		#print(lines)
-		#print('')
+		print('')
 
 		img_copy1 = images[n].copy()
 		img_copy2 = images[n].copy()
@@ -55,7 +55,7 @@ def funcion():
 				b = math.sin(theta)
 				x0 = a * rho				# x = rho * cos(theta)
 				y0 = b * rho				# y = rho * sin(theta)
-				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho) 
+				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
 				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
 				#print(pt1,pt2)
 				cv2.line(img_copy1, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
@@ -65,7 +65,7 @@ def funcion():
 		vector_angulos = []
 		primera_iter = 1
 		distinto = 1
-		
+
 		if lines is not None:
 			for i in lines:
 				print('rho:',i[0][0])
@@ -73,7 +73,7 @@ def funcion():
 				if primera_iter == 1:
 					vector_alturas.append(i[0][0])
 					vector_angulos.append(i[0][1])
-					primera_iter = 0	
+					primera_iter = 0
 
 				if primera_iter == 0:
 					for j in vector_alturas:
@@ -94,7 +94,7 @@ def funcion():
 						print('Vector_angulos:',vector_angulos)
 						print('')
 
-		# print('Vector alturas:',vector_alturas)			
+		# print('Vector alturas:',vector_alturas)
 		# print('')
 
 		# print(vector_alturas)
@@ -106,30 +106,77 @@ def funcion():
 				#print(i)
 				rho = vector_alturas[i]
 				theta = vector_angulos[i]
-				print(rho,theta)
-				a = math.cos(theta) 
+				#print(rho,theta)
+				a = math.cos(theta)
 				b = math.sin(theta)
 				x0 = a * rho				# x = rho * cos(theta)
 				y0 = b * rho				# y = rho * sin(theta)
-				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho) 
+				pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
 				pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
 				#print(pt1,pt2)
 				cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
-		
+
 		tam_vector = len(vector_alturas)
+		#print(tam_vector)
 
 		#Ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
 		alturas_ordenadas, angulos_ordenados = zip(*sorted(zip(vector_alturas, vector_angulos)))
-		# print('Vector alturas ordenados:',alturas_ordenadas)
-		# print('Vector ángulos ordenados:',angulos_ordenados)
+		print('Vector alturas ordenados:',alturas_ordenadas)
+		print('Vector ángulos ordenados:',angulos_ordenados)
+		print('')
 
-		#Transformada de Hough probabilística	
+		#Emparejamos las líneas detectadas
+		vector_mascara = []
+		alturas = []
+		i = 0
+		while i <= tam_vector - 1:
+			#if i+1 <= tam_vector - 1:		   #Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno
+			altura1 = alturas_ordenadas[i]
+			altura2 = alturas_ordenadas[i+1]
+			if altura2 - altura1 <= 500:		#Líneas separadas menos de 500 píxeles -> pareja de líneas
+				vector_mascara.append([altura1, altura2])
+				alturas.append(altura1)
+				alturas.append(altura2)
+				i = i + 2
+				print('Líneas emparejadas')
+				print(vector_mascara)
+				print('')
+			else:
+				i = i + 1
+				print('Línea desechada')
+				print('')
+
+		print('Vector máscara:', vector_mascara)
+		print('Vector alturas:', alturas)
+		# print(vector_mascara[0][0])
+		# print(vector_mascara[0][1])		#Elementos de la primera pareja de líneas horizontales
+		numero_de_parejas = len(vector_mascara)
+		indice_parejas = 0
+
+		#Creamos máscara para filtrar por alturas
+		mascara = numpy.zeros((height, width),numpy.uint8)
+		#print(mascara)
+
+		for i in range(height):
+			for j in range(width):	#Para cada elemento de la máscara
+				indice_parejas = 0
+				while indice_parejas < numero_de_parejas:
+					#print(i,j)
+					if i > vector_mascara[indice_parejas][0] and i < vector_mascara[indice_parejas][1]:		#Sí la fila está entre una pareja de horizontales
+						mascara[i][j] = 1
+						break				#Ya no hace falta comprobar con las otras parejas porque sabemos que está en esta (salimos del while)
+					else:
+						indice_parejas = indice_parejas + 1
+
+		
+
+		#Transformada de Hough probabilística
 		# linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
-	
+
 		# #print(linesP)
 		# #print(lines1)
 		# #print(lines1[0][2][0])			#Campo 0: nada, campo 1: el par (rho, theta), campo 2: rho [0] y theta [1]
-		
+
 		# # Draw the lines
 		# if linesP is not None:
 		# 	#print('hola')
@@ -142,15 +189,15 @@ def funcion():
 
 		plt.subplot(222),plt.imshow(edges,cmap = 'gray')
 		plt.title('Edges detection'), plt.xticks([]), plt.yticks([])
-		
+
 		plt.subplot(223),plt.imshow(img_copy1)
 		plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
-		
+
 		plt.subplot(224),plt.imshow(img_copy2)
-		plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])		
+		plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 		plt.show()
-		
+
 		#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################
 
-if __name__ == "__main__":              
+if __name__ == "__main__":
 	funcion()

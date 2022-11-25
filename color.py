@@ -55,7 +55,7 @@ def funcion():
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 
 		plt.subplot(244),plt.imshow(closed_banda, cmap='gray')
-		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+		plt.title('Cierre'), plt.xticks([]), plt.yticks([])
 
 		plt.subplot(245),plt.imshow(target)
 		plt.title('Color detection'), plt.xticks([]), plt.yticks([])
