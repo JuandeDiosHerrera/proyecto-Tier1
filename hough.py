@@ -27,7 +27,7 @@ def funcion():
 		#print(height,width)
 
 		kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto)
-		closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+		#closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
 		#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 		lineas_detectadas = 2000
@@ -157,18 +157,15 @@ def funcion():
 		mascara = numpy.zeros((height, width),numpy.uint8)
 		#print(mascara)
 
-		for i in range(height):
-			for j in range(width):	#Para cada elemento de la máscara
-				indice_parejas = 0
-				while indice_parejas < numero_de_parejas:
-					#print(i,j)
-					if i > vector_mascara[indice_parejas][0] and i < vector_mascara[indice_parejas][1]:		#Sí la fila está entre una pareja de horizontales
-						mascara[i][j] = 1
-						break				#Ya no hace falta comprobar con las otras parejas porque sabemos que está en esta (salimos del while)
-					else:
-						indice_parejas = indice_parejas + 1
+		for h0, h1 in vector_mascara:
+			lim_inferior = int(h0) 
+			lim_superior = int(h1) 
+			# print(lim_inferior, lim_superior)
+			mascara[lim_inferior:lim_superior, :] = 1
 
-		
+		# print(mascara.max())
+
+		target = cv2.bitwise_and(images[n],images[n], mask=mascara)
 
 		#Transformada de Hough probabilística
 		# linesP = cv2.HoughLinesP(edges,rho=1,theta=numpy.pi/180,threshold=300,minLineLength=100,maxLineGap=5)
@@ -184,17 +181,23 @@ def funcion():
 		# 		l = linesP[i][0]
 		# 		cv2.line(img_copy2, (l[0], l[1]), (l[2], l[3]), (255,0,0), 3, cv2.LINE_AA)
 
-		plt.subplot(221),plt.imshow(images[n])
+		plt.subplot(231),plt.imshow(images[n])
 		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(222),plt.imshow(edges,cmap = 'gray')
+		plt.subplot(232),plt.imshow(edges,cmap = 'gray')
 		plt.title('Edges detection'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(223),plt.imshow(img_copy1)
+		plt.subplot(233),plt.imshow(img_copy1)
 		plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(224),plt.imshow(img_copy2)
+		plt.subplot(234),plt.imshow(img_copy2)
 		plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(235),plt.imshow(mascara, cmap = 'gray')
+		plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+
+		plt.subplot(236),plt.imshow(target)
+		plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 		plt.show()
 
 		#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################

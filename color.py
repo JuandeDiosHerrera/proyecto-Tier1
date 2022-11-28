@@ -45,19 +45,19 @@ def funcion():
 		# mask = cv2.bitwise_or(mask1, mask2)
 		target = cv2.bitwise_and(images[n],images[n], mask=closed_banda)
 
-		plt.subplot(241),plt.imshow(images[n])
+		plt.subplot(231),plt.imshow(images[n])
 		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(242),plt.imshow(mask1, cmap='gray')
+		plt.subplot(232),plt.imshow(mask1, cmap='gray')
 		plt.title('Máscara color'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(243),plt.imshow(opened_banda, cmap='gray')
+		plt.subplot(233),plt.imshow(opened_banda, cmap='gray')
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(244),plt.imshow(closed_banda, cmap='gray')
+		plt.subplot(234),plt.imshow(closed_banda, cmap='gray')
 		plt.title('Cierre'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(245),plt.imshow(target)
+		plt.subplot(235),plt.imshow(target)
 		plt.title('Color detection'), plt.xticks([]), plt.yticks([])
 		
 		
