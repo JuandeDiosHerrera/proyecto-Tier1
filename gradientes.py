@@ -159,6 +159,9 @@ def funcion():
 					#print(pt1,pt2)
 					cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 
+			else:
+				print('Ninguna línea detectada')
+
 			tam_vector = len(vector_alturas)
 			print('Tamaño vector:',tam_vector)
 			print('')
@@ -237,78 +240,27 @@ def funcion():
 
 		grad_y = cv2.Sobel(target_gray, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 		abs_grad_y = cv2.convertScaleAbs(grad_y)
-		"""
-		grad = cv2.addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0)
-
-		cv2.imshow('gray', grad)
-		cv2.waitKey() 
-		"""
-		"""
-		#######################################################################Forma 1##################################################################################3
-		median = cv2.medianBlur(gray, 5)
-		#print("Tipo de median", type(median))
-		#print("Tipo de grad_x", type(grad_x))
-
-		umbral,binaria1 = cv2.threshold(abs_grad_x,200,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
-		#print(umbral)
-		#cv2.imshow('original', img)
-		#cv2.imshow('gradiente X abs', abs_grad_x)
-		#cv2.imshow('gradiente Y abs', abs_grad_y)
-		#cv2.imshow('binaria1', binaria1)
-		#cv2.imshow('binaria1', binaria1)
-		"""
-		#######################################################################Forma 2##################################################################################3
+		
 		# Cálculo gradiente absoluto 
 		gradient1 = cv2.subtract(grad_x, grad_y)
 		gradient2 = cv2.convertScaleAbs(gradient1)
 		#print(gradient2.max())
 		#print(gradient2.min())
 
-		# Suavizado: probar cuál funciona mejor
+		# Suavizado: probar cuál funciona mejor (gaussiano)
 		#blurred = cv2.blur(gradient2, (25, 25))
 		blurred = cv2.GaussianBlur(gradient2,(25,25),0)
 		#blurred = cv2.boxFilter(gradient2, -1, (25,25))
-
 		#blurred = cv2.medianBlur(gradient2,5)
 		#blurred = cv2.bilateralFilter(gradient2,9,75,75)
 
-
-		#print(blurred.max())
-		#print(blurred.min())
-		# Se binariza la imagen y se cierra para formar el rectángulo que engloba al código de barras
-		umbral,binaria = cv2.threshold(blurred,150,255,cv2.THRESH_BINARY)
-		#cv2.imshow('binaria', binaria)
-		#print(binaria.max())
+		# Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
+		umbral,binaria = cv2.threshold(blurred,150,255,cv2.THRESH_BINARY)		
 		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   
-		#print(kernel1)
 		opened = cv2.morphologyEx(binaria, cv2.MORPH_OPEN, kernel1)
-		#cv2.imshow('cierre', closed)
 
 		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
 		closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel2)
-		#opened = cv2.erode(closed, kernel2, iterations = 1)
-		#opened = cv2.dilate(closed, kernel2, iterations = 4)
-		
-		# binaria1 = cv2.adaptiveThreshold(gradient2,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,251,0)
-		#binaria2 = cv2.adaptiveThreshold(gradient,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,251,0)
-
-		"""
-		plt.subplot(231),plt.imshow(images[n])
-		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-
-		plt.subplot(232),plt.imshow(grad_x,cmap = 'gray')
-		plt.title('gradiente x'), plt.xticks([]), plt.yticks([])
-
-		plt.subplot(233),plt.imshow(grad_y,cmap = 'gray')
-		plt.title('gradiente y'), plt.xticks([]), plt.yticks([])
-
-		plt.subplot(234),plt.imshow(gradient1,cmap = 'gray')
-		plt.title('gradiente restado'), plt.xticks([]), plt.yticks([])
-
-		plt.subplot(235),plt.imshow(gradient2,cmap = 'gray')
-		plt.title('gradiente restado y valor absoluto'), plt.xticks([]), plt.yticks([])
-		plt.show()
-		"""
 
 		image_copy = images[n].copy()
 
