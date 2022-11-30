@@ -10,9 +10,9 @@ import numpy
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -28,9 +28,9 @@ def funcion():
 
 		filtro_color = 0
 
-		plot_gradientes = 1
 		plot_color = 0
 		plot_hough = 0
+		plot_gradientes = 1
 
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
@@ -77,13 +77,14 @@ def funcion():
 			height, width = edges.shape
 			#print(height,width)
 
-			kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto)
+			#kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto)
 			#closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
 
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>15):
+			# while(lineas_detectadas>15):	#Para gasolinera
+			while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
 				# print(lines)
 				lineas_detectadas = len(lines)
@@ -226,7 +227,7 @@ def funcion():
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(235),plt.imshow(mascara, cmap = 'gray')
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+				plt.title('Máscara bandas'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(236),plt.imshow(target)
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
@@ -249,17 +250,21 @@ def funcion():
 
 		# Suavizado: probar cuál funciona mejor (gaussiano)
 		#blurred = cv2.blur(gradient2, (25, 25))
-		blurred = cv2.GaussianBlur(gradient2,(25,25),0)
+		blurred = cv2.GaussianBlur(gradient2,(15,15),0)
 		#blurred = cv2.boxFilter(gradient2, -1, (25,25))
 		#blurred = cv2.medianBlur(gradient2,5)
 		#blurred = cv2.bilateralFilter(gradient2,9,75,75)
 
 		# Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
-		umbral,binaria = cv2.threshold(blurred,150,255,cv2.THRESH_BINARY)		
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   
+		# umbral,binaria = cv2.threshold(blurred,125,255,cv2.THRESH_BINARY)	    #Para gasolinera
+		umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
+	
+		# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
 		opened = cv2.morphologyEx(binaria, cv2.MORPH_OPEN, kernel1)
 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
+		# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
 		closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel2)
 
 		image_copy = images[n].copy()
@@ -275,23 +280,23 @@ def funcion():
 		"""
 
 		if plot_gradientes == 1:
-			plt.subplot(231),plt.imshow(target_gray,cmap = 'gray')
+			plt.subplot(231),plt.imshow(images[n],cmap = 'gray')
 			plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(232),plt.imshow(gradient2,cmap = 'gray')
-			plt.title('Resta y valor abs'), plt.xticks([]), plt.yticks([])
-
-			plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
+			plt.subplot(232),plt.imshow(blurred,cmap = 'gray')
 			plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(234),plt.imshow(binaria,cmap = 'gray')
+			plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
 			plt.title('Binaria'), plt.xticks([]), plt.yticks([])
-			
-			plt.subplot(235),plt.imshow(opened,cmap = 'gray')
+
+			plt.subplot(234),plt.imshow(opened,cmap = 'gray')
 			plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 			
-			plt.subplot(236),plt.imshow(closed,cmap = 'gray')
+			plt.subplot(235),plt.imshow(closed,cmap = 'gray')
 			plt.title('Cierre'), plt.xticks([]), plt.yticks([])
+			
+			plt.subplot(236),plt.imshow(masked,cmap = 'gray')
+			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 			plt.show()	
 		
 	#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################

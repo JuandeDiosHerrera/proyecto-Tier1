@@ -97,3 +97,5 @@ while(1):
 if useCamera:
     cap.release()
 cv2.destroyAllWindows()
+
+# python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos gasolinera\foto7.jpg"
