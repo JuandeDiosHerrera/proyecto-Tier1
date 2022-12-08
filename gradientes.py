@@ -10,9 +10,9 @@ import numpy
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -28,14 +28,15 @@ def funcion():
 
 		filtro_color = 0
 
-		plot_color = 0
+		plot_color = 1
 		plot_hough = 0
 		plot_gradientes = 1
 
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
-			mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))
+			mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
+			# mask1 = cv2.inRange(hsv, (0, 53, 172), (8, 186,255))	#Fotos Mercadona
 
 			# kernel1 = numpy.ones((25,25),numpy.uint8)
 			# print(kernel1)
@@ -77,14 +78,11 @@ def funcion():
 			height, width = edges.shape
 			#print(height,width)
 
-			#kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))		# (Ancho, alto)
-			#closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			# while(lineas_detectadas>15):	#Para gasolinera
-			while(lineas_detectadas>25):	#Para Mercadona
+			while(lineas_detectadas>15):	#Para gasolinera
+			# while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.08726,max_theta=numpy.pi/2+0.08726)
 				# print(lines)
 				lineas_detectadas = len(lines)
@@ -138,7 +136,7 @@ def funcion():
 								break
 
 						if distinto == 1:						#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
-							vector_alturas.append(i[0][0])		#los añadimos
+							vector_alturas.append(i[0][0])		#lo añadimos
 							vector_angulos.append(i[0][1])
 							print('Añadimos línea-----------------------')
 							print('Vector_alturas:',vector_alturas)
@@ -174,8 +172,8 @@ def funcion():
 			print('')
 
 			#Emparejamos las líneas detectadas
-			vector_mascara = []
-			alturas = []
+			vector_mascara = []			 #Vector de parejas de alturas
+			alturas = []				 #Vector de alturas definitivas ordenadas
 			i = 0
 			while i < tam_vector - 1:
 				# if i <= tam_vector - 1:		   #Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno
@@ -255,16 +253,27 @@ def funcion():
 		#blurred = cv2.medianBlur(gradient2,5)
 		#blurred = cv2.bilateralFilter(gradient2,9,75,75)
 
+		#Plot gradientes
+		# plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
+		# plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
+		# plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
+		# plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
+		# plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
+		# plt.title('Resta'), plt.xticks([]), plt.yticks([])		
+		# plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
+		# plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
+		# plt.show()		
+
 		# Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
-		# umbral,binaria = cv2.threshold(blurred,125,255,cv2.THRESH_BINARY)	    #Para gasolinera
-		umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
+		umbral,binaria = cv2.threshold(blurred,125,255,cv2.THRESH_BINARY)	    #Para gasolinera
+		# umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
 	
-		# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+		# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
 		opened = cv2.morphologyEx(binaria, cv2.MORPH_OPEN, kernel1)
 
-		# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
-		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
+		kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (30, 3))		# (Ancho, alto) 
+		# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
 		closed = cv2.morphologyEx(opened, cv2.MORPH_CLOSE, kernel2)
 
 		image_copy = images[n].copy()
@@ -293,7 +302,7 @@ def funcion():
 			plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 			
 			plt.subplot(235),plt.imshow(closed,cmap = 'gray')
-			plt.title('Cierre'), plt.xticks([]), plt.yticks([])
+			plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
 			
 			plt.subplot(236),plt.imshow(masked,cmap = 'gray')
 			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])

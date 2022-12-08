@@ -40,7 +40,7 @@ if useCamera:
 else:
     img = cv2.imread(sys.argv[1])
     
-    scale_percent = 25
+    scale_percent = 30
     width = int(img.shape[1] * scale_percent / 100)
     height = int(img.shape[0] * scale_percent / 100)
     dsize = (width, height)
@@ -98,4 +98,4 @@ if useCamera:
     cap.release()
 cv2.destroyAllWindows()
 
-# python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos gasolinera\foto7.jpg"
+# python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos Mercadona\Foto2.jpg"
