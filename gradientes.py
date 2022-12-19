@@ -10,9 +10,9 @@ import numpy
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -29,7 +29,7 @@ def funcion():
 		filtro_color = 0
 
 		plot_color = 1
-		plot_hough = 0
+		plot_hough = 1
 		plot_gradientes = 1
 
 		#Busco las bandas horizontales por su color
