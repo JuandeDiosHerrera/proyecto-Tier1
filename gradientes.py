@@ -30,7 +30,7 @@ def funcion():
 
 		plot_color = 1
 		plot_hough = 1
-		plot_gradientes = 1
+		plot_gradientes = 0
 
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
@@ -174,10 +174,10 @@ def funcion():
 			#Emparejamos las líneas detectadas
 			vector_mascara = []			 #Vector de parejas de alturas
 			alturas = []				 #Vector de alturas definitivas ordenadas
+			vector_desechadas = []		 #Vector de líneas desechadas (las que no se emparejan y se quedan solas)
 			i = 0
-			while i < tam_vector - 1:
-				# if i <= tam_vector - 1:		   #Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno
-				altura1 = alturas_ordenadas[i]
+			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
+				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 				altura2 = alturas_ordenadas[i+1]
 				if altura2 - altura1 <= 500:		#Líneas separadas menos de 500 píxeles -> pareja de líneas
 					vector_mascara.append([altura1, altura2])
@@ -188,12 +188,24 @@ def funcion():
 					print(vector_mascara)
 					print('')
 				else:
+					vector_desechadas.append(altura1)
 					i = i + 1
 					print('Línea desechada')
-					print('')
+					print(vector_desechadas)
+					print('')	
+
+			print('Valor de "i" al salir del bucle de emparejamiento:', i)
+			print('')
+
+			if i == tam_vector - 1:
+				altura = alturas_ordenadas[i]
+				vector_desechadas.append(altura)
+				print('Última línea se queda sola para emparejar -> se añade a las líneas desechadas')
+				print('')
 
 			print('Vector máscara:', vector_mascara)
 			print('Vector alturas:', alturas)
+			print('Vector líneas desechadas:', vector_desechadas)
 			# print(vector_mascara[0][0])
 			# print(vector_mascara[0][1])		#Elementos de la primera pareja de líneas horizontales
 			numero_de_parejas = len(vector_mascara)
