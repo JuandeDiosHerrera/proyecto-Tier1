@@ -32,6 +32,8 @@ def funcion():
 		plot_hough = 1
 		plot_gradientes = 0
 
+		numero_bandas = 3
+
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
@@ -203,13 +205,34 @@ def funcion():
 				print('Última línea se queda sola para emparejar -> se añade a las líneas desechadas')
 				print('')
 
-			print('Vector máscara:', vector_mascara)
-			print('Vector alturas:', alturas)
-			print('Vector líneas desechadas:', vector_desechadas)
 			# print(vector_mascara[0][0])
 			# print(vector_mascara[0][1])		#Elementos de la primera pareja de líneas horizontales
+			print('Vector máscara:', vector_mascara)
+			print('Vector alturas:', alturas)
 			numero_de_parejas = len(vector_mascara)
+			print('Número de parejas:', numero_de_parejas)
+
+			print('Vector líneas desechadas:', vector_desechadas)
+			numero_lineas_desechadas = len(vector_desechadas)
+			print('Número de líneas desechadas:', numero_lineas_desechadas)
+			print('')
+					
+
+
+
 			indice_parejas = 0
+
+			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
+			while numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
+				#Saco ancho medio de las bandas ya detectadas
+				#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
+				#Si es, relleno mirando si tiene que ser hacia arriba o hacia abajo, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
+				pass
+
+			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
+				#hasta llegar a "numero_de_parejas == numero_bandas" 
+				pass
 
 			#Creamos máscara para filtrar por alturas
 			mascara = numpy.zeros((height, width),numpy.uint8)
