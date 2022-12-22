@@ -223,16 +223,29 @@ def funcion():
 			indice_parejas = 0
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
-			while numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
-				#Saco ancho medio de las bandas ya detectadas
+############## WHILEEEEEEEEEEEEEEEEEE
+			if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
+				#Saco ancho máximo de las bandas ya detectadas
 				#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
 				#Si es, relleno mirando si tiene que ser hacia arriba o hacia abajo, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
-				pass
+				#Relleno hacia un lado y hacia el otro y hago una AND con el filtro de color (con las bandas horizontales completas). Luego comparo 
+				#y me quedo con la que tenga más píxeles en blanco que será la que rellene hacia el lado correcto
+				separacion = int(height / numero_bandas)
+				vector_anchos = []
+				for i in range(numero_de_parejas):
+					# print(i)
+					vector_anchos.append(int(vector_mascara[i][1]-vector_mascara[i][0]))
+				print('Vector anchos:', vector_anchos)
+				ancho = max(vector_anchos)
+				print('Ancho máximo:', ancho)	
 
 			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
 				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 				#hasta llegar a "numero_de_parejas == numero_bandas" 
-				pass
+				
+				for i in range(numero_bandas):
+					pass
+				
 
 			#Creamos máscara para filtrar por alturas
 			mascara = numpy.zeros((height, width),numpy.uint8)
