@@ -37,8 +37,8 @@ def funcion():
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
-			mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
-			# mask1 = cv2.inRange(hsv, (0, 53, 172), (8, 186,255))	#Fotos Mercadona
+			# mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
+			mask1 = cv2.inRange(hsv, (0, 53, 172), (8, 186,255))	#Fotos Mercadona
 
 			# kernel1 = numpy.ones((25,25),numpy.uint8)
 			# print(kernel1)
@@ -217,34 +217,83 @@ def funcion():
 			print('Número de líneas desechadas:', numero_lineas_desechadas)
 			print('')
 					
+			# Ancho de las bandas ya detectadas
+			vector_anchos = []
+			for i in range(numero_de_parejas):
+				# print(i)
+				vector_anchos.append(int(vector_mascara[i][1]-vector_mascara[i][0]))
+			print('Vector anchos:', vector_anchos)
+			ancho = max(vector_anchos)
+			print('Ancho máximo:', ancho)	
+			print('')
 
-
-
-			indice_parejas = 0
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 ############## WHILEEEEEEEEEEEEEEEEEE
 			if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
 				#Saco ancho máximo de las bandas ya detectadas
 				#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
-				#Si es, relleno mirando si tiene que ser hacia arriba o hacia abajo, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
-				#Relleno hacia un lado y hacia el otro y hago una AND con el filtro de color (con las bandas horizontales completas). Luego comparo 
-				#y me quedo con la que tenga más píxeles en blanco que será la que rellene hacia el lado correcto
+				#Si es, relleno hacia un lado y hacia el otro y hago una AND con el filtro de color (con las bandas horizontales completas). Luego comparo 
+				#y me quedo con la que tenga más píxeles en blanco que será la que rellene hacia el lado correcto, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
 				separacion = int(height / numero_bandas)
-				vector_anchos = []
-				for i in range(numero_de_parejas):
-					# print(i)
-					vector_anchos.append(int(vector_mascara[i][1]-vector_mascara[i][0]))
-				print('Vector anchos:', vector_anchos)
-				ancho = max(vector_anchos)
-				print('Ancho máximo:', ancho)	
+
+				for i in vector_desechadas:
+					# print (i)
+					pass
 
 			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
 				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
-				#hasta llegar a "numero_de_parejas == numero_bandas" 
+				#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
+				separacion_teorica = int(height / numero_bandas)								
+				vector_ocupacion = numpy.zeros(numero_bandas)	#Para saber qué posiciones están ocupadas (0 libre - 1 ocupado)
+
+				for i in range(numero_de_parejas):		#Igual que range(len(vector_mascara))	Ubico cada pareja en "vector_ocupacion"
+					# print(i)							#para saber qué bandas son las que hay que crear artificialmente 
+					ubicado = 0
+					indice_pareja = 1
+					altura_de_abajo = vector_mascara[i][1]
+					# if altura_de_arriba - separacion <= 0:			#Compruebo si es la banda de más arriba
+					# 	vector_ocupacion[0] = 1
+					# elif altura_de_arriba + separacion >= height:		#Compruebo si es la banda de más abajo
+					# 	vector_ocupacion[-1] = 1
+					# else:
+						
+					while ubicado == 0:				#Averiguo qué posición tiene cada pareja en el "vector_ocupacion"
+						factor = indice_pareja * separacion_teorica
+						if altura_de_abajo <= factor:
+							vector_ocupacion[indice_pareja - 1] = 1
+							ubicado = 1
+						indice_pareja = indice_pareja + 1
 				
-				for i in range(numero_bandas):
-					pass
+				#Saco la separación que hay entre dos bandas consecutivas
+				i = 0				
+				while (1):
+					if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1:
+						separacion = vector_mascara[i][0] - vector_mascara[i-1][0]						
+						break
+					elif vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1:
+						separacion = vector_mascara[i+1][0] - vector_mascara[i][0]					
+						break		
+					i = i + 1		
+				print('Separación entre bandas:', separacion)
+				print('')
+
+				print('Vector máscara:', vector_mascara)
+				print('Vector ocupación:', vector_ocupacion)
+				print('')
+				
+				for i in range(len(vector_ocupacion)):	#Miro si la banda de arriba o de abajo de la vacía está ocupada para usarla como referencia
+					print(i)
+					if vector_ocupacion[i] == 0 and vector_ocupacion[i-1] == 1:
+						vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
+
+					elif vector_ocupacion[i] == 0 and vector_ocupacion[i + 1] == 1:
+						vector_mascara.insert(i, [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
+
+				print('Vector máscara tras relleno artificial:', vector_mascara)
+				
+				# for i in range(numero_bandas):
+				# 	pass
 				
 
 			#Creamos máscara para filtrar por alturas

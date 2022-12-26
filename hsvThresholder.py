@@ -3,14 +3,14 @@ import sys
 import numpy as np
 
 def nothing(x):
-    pass
+	pass
 
 useCamera=False
 
 # Check if filename is passed
 if (len(sys.argv) <= 1) :
-    print("'Usage: python hsvThresholder.py <ImageFilePath>' to ignore camera and use a local image.")
-    useCamera = True
+	print("'Usage: python hsvThresholder.py <ImageFilePath>' to ignore camera and use a local image.")
+	useCamera = True
 
 # Create a window
 cv2.namedWindow('image')
@@ -34,68 +34,71 @@ phMin = psMin = pvMin = phMax = psMax = pvMax = 0
 
 # Output Image to display
 if useCamera:
-    cap = cv2.VideoCapture(0)
-    # Wait longer to prevent freeze for videos.
-    waitTime = 330
+	cap = cv2.VideoCapture(0)
+	# Wait longer to prevent freeze for videos.
+	waitTime = 330
 else:
-    img = cv2.imread(sys.argv[1])
-    
-    scale_percent = 30
-    width = int(img.shape[1] * scale_percent / 100)
-    height = int(img.shape[0] * scale_percent / 100)
-    dsize = (width, height)
+	img = cv2.imread(sys.argv[1])
+	
+	
+	scale_percent = 10
+	width = int(img.shape[1] * scale_percent / 100)
+	height = int(img.shape[0] * scale_percent / 100)
+	dsize = (width, height)
 
-    
-    img = cv2.resize(img, dsize)
-    
-    output = img
-    waitTime = 33
+	# dsize = (400, 300)
+
+	
+	img = cv2.resize(img, dsize)
+	
+	output = img
+	waitTime = 33
 
 while(1):
 
-    if useCamera:
-        # Capture frame-by-frame
-        ret, img = cap.read()
-        output = img
+	if useCamera:
+		# Capture frame-by-frame
+		ret, img = cap.read()
+		output = img
 
-    # get current positions of all trackbars
-    hMin = cv2.getTrackbarPos('HMin','image')
-    sMin = cv2.getTrackbarPos('SMin','image')
-    vMin = cv2.getTrackbarPos('VMin','image')
+	# get current positions of all trackbars
+	hMin = cv2.getTrackbarPos('HMin','image')
+	sMin = cv2.getTrackbarPos('SMin','image')
+	vMin = cv2.getTrackbarPos('VMin','image')
 
-    hMax = cv2.getTrackbarPos('HMax','image')
-    sMax = cv2.getTrackbarPos('SMax','image')
-    vMax = cv2.getTrackbarPos('VMax','image')
+	hMax = cv2.getTrackbarPos('HMax','image')
+	sMax = cv2.getTrackbarPos('SMax','image')
+	vMax = cv2.getTrackbarPos('VMax','image')
 
-    # Set minimum and max HSV values to display
-    lower = np.array([hMin, sMin, vMin])
-    upper = np.array([hMax, sMax, vMax])
+	# Set minimum and max HSV values to display
+	lower = np.array([hMin, sMin, vMin])
+	upper = np.array([hMax, sMax, vMax])
 
-    # Create HSV Image and threshold into a range.
-    hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, lower, upper)
-    output = cv2.bitwise_and(img,img, mask= mask)
+	# Create HSV Image and threshold into a range.
+	hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+	mask = cv2.inRange(hsv, lower, upper)
+	output = cv2.bitwise_and(img,img, mask= mask)
 
-    # Print if there is a change in HSV value
-    if( (phMin != hMin) | (psMin != sMin) | (pvMin != vMin) | (phMax != hMax) | (psMax != sMax) | (pvMax != vMax) ):
-        print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d , sMax = %d, vMax = %d)" % (hMin , sMin , vMin, hMax, sMax , vMax))
-        phMin = hMin
-        psMin = sMin
-        pvMin = vMin
-        phMax = hMax
-        psMax = sMax
-        pvMax = vMax
+	# Print if there is a change in HSV value
+	if( (phMin != hMin) | (psMin != sMin) | (pvMin != vMin) | (phMax != hMax) | (psMax != sMax) | (pvMax != vMax) ):
+		print("(hMin = %d , sMin = %d, vMin = %d), (hMax = %d , sMax = %d, vMax = %d)" % (hMin , sMin , vMin, hMax, sMax , vMax))
+		phMin = hMin
+		psMin = sMin
+		pvMin = vMin
+		phMax = hMax
+		psMax = sMax
+		pvMax = vMax
 
-    # Display output image
-    cv2.imshow('image',output)
+	# Display output image
+	cv2.imshow('image',output)
 
-    # Wait longer to prevent freeze for videos.
-    if cv2.waitKey(waitTime) & 0xFF == ord('q'):
-        break
+	# Wait longer to prevent freeze for videos.
+	if cv2.waitKey(waitTime) & 0xFF == ord('q'):
+		break
 
 # Release resources
 if useCamera:
-    cap.release()
+	cap.release()
 cv2.destroyAllWindows()
 
 # python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos Mercadona\Foto2.jpg"
