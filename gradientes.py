@@ -38,22 +38,22 @@ def funcion():
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
 			# mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
-			mask1 = cv2.inRange(hsv, (0, 53, 172), (8, 186,255))	#Fotos Mercadona
+			mask1 = cv2.inRange(hsv, (7, 134, 145), (7, 233,255))	#Fotos Mercadona
 
 			# kernel1 = numpy.ones((25,25),numpy.uint8)
 			# print(kernel1)
-			kernel_banda1 = cv2.getStructuringElement(cv2.MORPH_RECT, (100, 100))		# (Ancho, alto) 
-			opened_banda = cv2.morphologyEx(mask1, cv2.MORPH_OPEN, kernel_banda1)
+			kernel_banda1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))		# (Ancho, alto) 
+			closed_banda = cv2.morphologyEx(mask1, cv2.MORPH_CLOSE, kernel_banda1)
 
-			kernel_banda2 = cv2.getStructuringElement(cv2.MORPH_RECT, (4000, 1))		# (Ancho, alto) 
-			closed_banda = cv2.morphologyEx(opened_banda, cv2.MORPH_CLOSE, kernel_banda2)
+			kernel_banda2 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 25))		# (Ancho, alto) 
+			opened_banda = cv2.morphologyEx(closed_banda, cv2.MORPH_OPEN, kernel_banda2)
 
 			# ## mask o yellow (15,0,0) ~ (36, 255, 255)
 			# mask2 = cv2.inRange(hsv, (15,0,0), (36, 255, 255))
 
 			# ## final mask and masked
 			# mask = cv2.bitwise_or(mask1, mask2)
-			target = cv2.bitwise_and(images[n],images[n], mask=closed_banda)
+			target = cv2.bitwise_and(images[n],images[n], mask=opened_banda)
 
 			if plot_color == 1:
 				# print('hola')
@@ -63,11 +63,11 @@ def funcion():
 				plt.subplot(232),plt.imshow(mask1, cmap='gray')
 				plt.title('Máscara color'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(233),plt.imshow(opened_banda, cmap='gray')
-				plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(234),plt.imshow(closed_banda, cmap='gray')
+				plt.subplot(233),plt.imshow(closed_banda, cmap='gray')
 				plt.title('Cierre'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(234),plt.imshow(opened_banda, cmap='gray')
+				plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(235),plt.imshow(target)
 				plt.title('Color detection'), plt.xticks([]), plt.yticks([])
@@ -267,15 +267,26 @@ def funcion():
 				
 				#Saco la separación que hay entre dos bandas consecutivas
 				i = 0				
-				while (1):
+				while(i < numero_bandas - 1):
 					if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1:
-						separacion = vector_mascara[i][0] - vector_mascara[i-1][0]						
+						separacion1 = vector_mascara[i][0] - vector_mascara[i-1][0]	
+						separacion2 = vector_mascara[i][1] - vector_mascara[i-1][1]				
 						break
-					elif vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1:
-						separacion = vector_mascara[i+1][0] - vector_mascara[i][0]					
-						break		
-					i = i + 1		
-				print('Separación entre bandas:', separacion)
+					elif vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1 and i < numero_bandas - 2:
+						separacion1 = vector_mascara[i+1][0] - vector_mascara[i][0]	
+						separacion2 = vector_mascara[i+1][1] - vector_mascara[i][1]						
+						break								
+					else:
+						pass	
+
+
+#######################Mirar el caso en el que no hay dos bandas detectadas consecutivas###############################################
+
+
+					i = i + 1	
+
+				separacion = int((separacion1 + separacion2) / 2)
+				print('Separación media entre bandas:', separacion)
 				print('')
 
 				print('Vector máscara:', vector_mascara)
@@ -286,9 +297,14 @@ def funcion():
 					print(i)
 					if vector_ocupacion[i] == 0 and vector_ocupacion[i-1] == 1:
 						vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
+						print('Añadida banda artificial:', [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
+						numero_bandas = numero_bandas + 1
 
 					elif vector_ocupacion[i] == 0 and vector_ocupacion[i + 1] == 1:
 						vector_mascara.insert(i, [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
+						print('Añadida banda artificial:', [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
+						numero_bandas = numero_bandas + 1
+						
 
 				print('Vector máscara tras relleno artificial:', vector_mascara)
 				
