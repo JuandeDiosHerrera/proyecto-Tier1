@@ -177,6 +177,8 @@ def funcion():
 			vector_mascara = []			 #Vector de parejas de alturas
 			alturas = []				 #Vector de alturas definitivas ordenadas
 			vector_desechadas = []		 #Vector de líneas desechadas (las que no se emparejan y se quedan solas)
+			indice_pareja = 0 			 #Para saber en qué índice de "vector_mascara" debo meter las líneas desechadas una vez las rellene
+			vector_indices = []      #Vector que contiene los índice en los que se deben meter las líneas desechadas en "vector_mascara"
 			i = 0
 			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
@@ -185,16 +187,20 @@ def funcion():
 					vector_mascara.append([altura1, altura2])
 					alturas.append(altura1)
 					alturas.append(altura2)
+					# indice_pareja = indice_pareja + 1
 					i = i + 2
 					print('Líneas emparejadas')
 					print(vector_mascara)
 					print('')
 				else:
 					vector_desechadas.append(altura1)
+					vector_indices.append(indice_pareja)
+					# indice_pareja = indice_pareja + 1
 					i = i + 1
 					print('Línea desechada')
 					print(vector_desechadas)
 					print('')	
+				indice_pareja = indice_pareja + 1
 
 			print('Valor de "i" al salir del bucle de emparejamiento:', i)
 			print('')
@@ -202,6 +208,7 @@ def funcion():
 			if i == tam_vector - 1:
 				altura = alturas_ordenadas[i]
 				vector_desechadas.append(altura)
+				vector_indices.append(indice_pareja)
 				print('Última línea se queda sola para emparejar -> se añade a las líneas desechadas')
 				print('')
 
@@ -213,6 +220,7 @@ def funcion():
 			print('Número de parejas:', numero_de_parejas)
 
 			print('Vector líneas desechadas:', vector_desechadas)
+			print('Índices líneas desechadas:', vector_indices)
 			numero_lineas_desechadas = len(vector_desechadas)
 			print('Número de líneas desechadas:', numero_lineas_desechadas)
 			print('')
@@ -230,18 +238,26 @@ def funcion():
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 ############## WHILEEEEEEEEEEEEEEEEEE
-			if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
+############## if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas
+			if numero_lineas_desechadas != 0:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
 				#Saco ancho máximo de las bandas ya detectadas
 				#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
 				#Si es, relleno hacia un lado y hacia el otro y hago una AND con el filtro de color (con las bandas horizontales completas). Luego comparo 
 				#y me quedo con la que tenga más píxeles en blanco que será la que rellene hacia el lado correcto, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
 				separacion = int(height / numero_bandas)
 
-				for i in vector_desechadas:
-					# print (i)
-					pass
+				for i in range(len(vector_desechadas)):
+					vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
+					numero_de_parejas = numero_de_parejas + 1
+				print('Vector máscara tras añadir líneas desechadas:', vector_mascara)
+				print('--------------------------------------------------------------------------------------------------------------------------')
+				print('')
+############### POR AHORA SE RELLENA EN AMBOS LADOS, HABRÁ QUE SABER DE ALGUNA MANERA QUÉ LADO ES EL CORRECTO #####################################
+############### TAMBIÉN MIRAR POR SI PUEDE SER UNA LÍNEA QUE ESTÁ EN LOS PRODUCTOS Y QUE POR LO TANTO NO SIRVE ####################################
 
-			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+ 
+
+			if numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
 				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 				#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
 				separacion_teorica = int(height / numero_bandas)								
