@@ -34,6 +34,12 @@ def funcion():
 
 		numero_bandas = 2
 
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		2 		   --- 		 15 		 --- 			150 		   	 --- 			  350 			      --- 		 Límite inferior + 4 * ancho máximo		      ---
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 		#Busco las bandas horizontales por su color
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
@@ -77,7 +83,7 @@ def funcion():
 		else:
 			edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
 			#print(edges)
-
+			print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
@@ -87,8 +93,9 @@ def funcion():
 				# print(lines)
 				lineas_detectadas = len(lines)
 				print('Líneas detectadas:',len(lines),'---','Umbral:', umbral)
-				umbral += 100
+				umbral += 75
 
+			print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 			#print(lines)
 			print('')
 
@@ -115,6 +122,8 @@ def funcion():
 				vector_angulos = []
 				primera_iter = 1
 				distinto = 1
+
+				print('-------------------------------------------------------------------- Selección de líneas definitivas --------------------------------------------------------------------')
 			
 				for i in lines:
 					print('rho:',i[0][0])
@@ -127,7 +136,7 @@ def funcion():
 					if primera_iter == 0:		#else:
 						for j in vector_alturas:
 							print('elemento vector:',j)
-							if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 100 píxeles se considera que representan la misma horizontal
+							if abs(i[0][0] - j) < 150:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 								print('Misma línea-------------------------------')
 								print('Vector_alturas:',vector_alturas)
 								print('Vector_angulos:',vector_angulos)
@@ -142,6 +151,7 @@ def funcion():
 							print('Vector_alturas:',vector_alturas)
 							print('Vector_angulos:',vector_angulos)
 							print('')
+				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
 				#Pinto las líneas definitivas			
 				for i in range(len(vector_alturas)):
@@ -172,6 +182,7 @@ def funcion():
 			print('')
 
 			#Emparejamos las líneas detectadas
+			print('-------------------------------------------------------------------- Emparejamiento de líneas --------------------------------------------------------------------')
 			vector_mascara = []			 #Vector de parejas de alturas
 			alturas = []				 #Vector de alturas definitivas ordenadas
 			vector_desechadas = []		 #Vector de líneas desechadas (las que no se emparejan y se quedan solas)
@@ -182,7 +193,7 @@ def funcion():
 			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 				altura2 = alturas_ordenadas[i+1]
-				if altura2 - altura1 <= 200:		#Líneas separadas menos de 500 píxeles -> pareja de líneas
+				if altura2 - altura1 <= 350:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 					vector_mascara.append([altura1, altura2])
 					alturas.append(altura1)
 					alturas.append(altura2)
@@ -212,6 +223,7 @@ def funcion():
 				print('Última línea se queda sola para emparejar -> se añade a las líneas desechadas')
 				print('')
 
+			print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 			# print(vector_mascara[0][0])
 			# print(vector_mascara[0][1])		#Elementos de la primera pareja de líneas horizontales
 			print('Vector máscara:', vector_mascara)
@@ -248,9 +260,10 @@ def funcion():
 				separacion_teorica = int(height / numero_bandas)	
 
 				print('-------------------------------------------------------------------- Relleno de líneas sueltas --------------------------------------------------------------------')
-				print('Vector límites inferiores parejas:', vector_limites_inferiores)
 
 				for i in range(len(vector_desechadas)):
+					# print(i)
+					print('Vector límites inferiores parejas:', vector_limites_inferiores)
 					print('Línea desechada:', vector_desechadas[i])
 					#Las líneas detectadas en los productos suelen estar justo debajo de una banda horizontal que es cuando acaba 
 					#la parte de arriba de las cajas/tetrabrick. Si se detecta el final de las cajas/tetrabrick por debajo, da igual porque nos sirve
@@ -261,20 +274,38 @@ def funcion():
 					# indice_banda_anterior = vector_indices[i] - 1
 					# altura_lim_inferior_banda_anterior = vector_mascara[indice_banda_anterior][1]
 
-					aux = vector_limites_inferiores
-					aux = [abs(x - vector_desechadas[i]) for x in aux]	#Resto el valor de la línea desechada a cada elemento del vector de límites inferiores de las parejas ya formadas
-					print(aux)
+					aux1 = vector_limites_inferiores
+					aux2 = [x - vector_desechadas[i] for x in aux1]	#Resto el valor de la línea desechada a cada elemento del vector de límites inferiores de las parejas ya formadas
+					print('Limites inferiores restados:', aux2)		#El elemento negativo de "aux" más grande (más cerca del 0), será el elemento que buscamos
 
-					OBTENER EL VALOR DEL LÍMITE INFERIOR JUSTO POR DEBAJO (MÁS PEQUEÑO) DE LA LÍNEA DESECHADA QUE ESTAMOS MIRANDO :)
+					# Obtenemos el valor del límite inferior de la pareja más cercana por arriba
+					minimo = aux2[0]
+					indice = 0
+					for j in range(len(aux2)):
+						# print(i)
+						if aux2[j] < 0 and aux2[j] > minimo:
+							minimo = aux2[j]
+							indice = j
 
+					# print(type(minimo))
+					# print(type(i))
 
-					# print('Límite inferior de la banda de arriba:', altura_lim_inferior_banda_anterior)
-					# if indice_banda_anterior not in vector_indices and vector_desechadas[i] > altura_lim_inferior_banda_anterior + 3 * ancho:	
-					# 	vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
-					# 	numero_de_parejas = numero_de_parejas + 1
-					# 	print('Línea rellenada hacia ambos lados')
-					# else:
-					# 	print('Línea eliminada definitivamente')
+					print('Límite inferior de la banda de arriba:', aux1[indice])
+
+					# print(vector_desechadas[i])
+					# print(aux1[indice] + 4 * ancho)
+					print(vector_indices[i])
+
+					if vector_desechadas[i] > aux1[indice] + 4 * ancho:	
+						
+						vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
+						numero_de_parejas = numero_de_parejas + 1
+						vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
+						print('Línea rellenada hacia ambos lados')
+						print('Vector máscara tras añadir la línea:', vector_mascara)
+						print('Vector límites inferiores tras añadir la línea:', vector_limites_inferiores)
+					else:
+						print('Línea eliminada definitivamente')
 					
 					numero_lineas_desechadas = numero_lineas_desechadas - 1
 					# vector_desechadas.remove(vector_desechadas[i])
@@ -283,6 +314,7 @@ def funcion():
 					# print(vector_indices)
 					print('')
 
+				print('Vector límites inferiores parejas tras añadir línea:', vector_limites_inferiores)
 				print('Vector máscara tras añadir líneas desechadas:', vector_mascara)
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 				print('')
