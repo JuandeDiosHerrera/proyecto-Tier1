@@ -12,7 +12,7 @@ def funcion():
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\2B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -32,12 +32,16 @@ def funcion():
 		plot_hough = 1
 		plot_gradientes = 0
 
-		numero_bandas = 2
+		numero_bandas = 4
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		2 		   --- 		 15 		 --- 			150 		   	 --- 			  350 			      --- 		 Límite inferior + 4 * ancho máximo		      ---
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		3 		   --- 		 20 		 --- 			100 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		4 		   --- 		 30 		 --- 			100  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		#Busco las bandas horizontales por su color
@@ -87,7 +91,7 @@ def funcion():
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>15):	#Para gasolinera
+			while(lineas_detectadas>30):	#Para gasolinera
 			# while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-5*numpy.pi/180,max_theta=numpy.pi/2+5*numpy.pi/180)
 				# print(lines)
@@ -136,7 +140,7 @@ def funcion():
 					if primera_iter == 0:		#else:
 						for j in vector_alturas:
 							print('elemento vector:',j)
-							if abs(i[0][0] - j) < 150:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
+							if abs(i[0][0] - j) < 75:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 								print('Misma línea-------------------------------')
 								print('Vector_alturas:',vector_alturas)
 								print('Vector_angulos:',vector_angulos)
@@ -193,7 +197,7 @@ def funcion():
 			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 				altura2 = alturas_ordenadas[i+1]
-				if altura2 - altura1 <= 350:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+				if altura2 - altura1 <= 150:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 					vector_mascara.append([altura1, altura2])
 					alturas.append(altura1)
 					alturas.append(altura2)
@@ -294,9 +298,9 @@ def funcion():
 
 					# print(vector_desechadas[i])
 					# print(aux1[indice] + 4 * ancho)
-					print(vector_indices[i])
+					# print(vector_indices[i])
 
-					if vector_desechadas[i] > aux1[indice] + 4 * ancho:	
+					if vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0:	
 						
 						vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 						numero_de_parejas = numero_de_parejas + 1
@@ -321,9 +325,9 @@ def funcion():
 ############### POR AHORA SE RELLENA HACIA AMBOS LADOS, HABRÁ QUE SABER DE ALGUNA MANERA QUÉ LADO ES EL CORRECTO #####################################
 ############### TAMBIÉN MIRAR POR SI PUEDE SER UNA LÍNEA QUE ESTÁ EN LOS PRODUCTOS Y QUE POR LO TANTO NO SIRVE #######################################
 
- 
+			banda_artificial = 0
 
-			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas and banda_artificial == 1:	#Hay que crear artificialmente bandas horizontales
 				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 				#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
 				separacion_teorica = int(height / numero_bandas)								
