@@ -12,7 +12,7 @@ def funcion():
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\2B'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -32,7 +32,7 @@ def funcion():
 		plot_hough = 1
 		plot_gradientes = 0
 
-		numero_bandas = 4
+		numero_bandas = 2
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
@@ -42,6 +42,8 @@ def funcion():
 # --- 		3 		   --- 		 20 		 --- 			100 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		4 		   --- 		 30 		 --- 			100  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		#Busco las bandas horizontales por su color
@@ -91,7 +93,7 @@ def funcion():
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>30):	#Para gasolinera
+			while(lineas_detectadas>15):	#Para gasolinera
 			# while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-5*numpy.pi/180,max_theta=numpy.pi/2+5*numpy.pi/180)
 				# print(lines)
@@ -140,7 +142,7 @@ def funcion():
 					if primera_iter == 0:		#else:
 						for j in vector_alturas:
 							print('elemento vector:',j)
-							if abs(i[0][0] - j) < 75:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
+							if abs(i[0][0] - j) < 150:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 								print('Misma línea-------------------------------')
 								print('Vector_alturas:',vector_alturas)
 								print('Vector_angulos:',vector_angulos)
@@ -197,7 +199,7 @@ def funcion():
 			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 				altura2 = alturas_ordenadas[i+1]
-				if altura2 - altura1 <= 150:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+				if altura2 - altura1 <= 350:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 					vector_mascara.append([altura1, altura2])
 					alturas.append(altura1)
 					alturas.append(altura2)
@@ -213,7 +215,7 @@ def funcion():
 					# indice_pareja = indice_pareja + 1
 					i = i + 1
 					print('Línea desechada')
-					print(vector_desechadas)
+					print('Vector desechadas:', vector_desechadas)
 					print('')	
 				indice_pareja = indice_pareja + 1
 
@@ -251,6 +253,14 @@ def funcion():
 			ancho = max(vector_anchos)
 			print('Ancho máximo:', ancho)	
 			print('')
+
+			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
+			mascara1 = numpy.zeros((height, width),numpy.uint8)
+			for h0, h1 in vector_mascara:
+				lim_inferior = int(h0) 
+				lim_superior = int(h1) 
+				# print(lim_inferior, lim_superior)
+				mascara1[lim_inferior:lim_superior, :] = 1
 
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
@@ -398,35 +408,38 @@ def funcion():
 				# 	pass
 				
 
-			#Creamos máscara para filtrar por alturas
-			mascara = numpy.zeros((height, width),numpy.uint8)
+			#Creamos máscara para filtrar por alturas usando el relleno de líneas sueltas también
+			mascara2 = numpy.zeros((height, width),numpy.uint8)
 			for h0, h1 in vector_mascara:
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
 				# print(lim_inferior, lim_superior)
-				mascara[lim_inferior:lim_superior, :] = 1
+				mascara2[lim_inferior:lim_superior, :] = 1
 
 			# print(mascara.max())
 
-			target = cv2.bitwise_and(images[n],images[n], mask=mascara)
+			target = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
 			if plot_hough == 1:
 				plt.subplot(231),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(232),plt.imshow(edges,cmap = 'gray')
-				plt.title('Edges detection'), plt.xticks([]), plt.yticks([])
+				# plt.subplot(232),plt.imshow(edges,cmap = 'gray')
+				# plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
 
-				plt.subplot(233),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
+				plt.subplot(232),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
 				plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(234),plt.imshow(img_copy2)	#Pinto las líneas definitivas
+				plt.subplot(233),plt.imshow(img_copy2)	#Pinto las líneas definitivas
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(235),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara			
-				plt.title('Máscara bandas'), plt.xticks([]), plt.yticks([])
+				plt.subplot(234),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+				plt.title('Parejas detectadas directamente'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(236),plt.imshow(target)	#Pinto solo las bandas horizontales detectadas
+				plt.subplot(235),plt.imshow(mascara2, cmap = 'gray')	#Pinto las bandas con todas las parejas formadas
+				plt.title('Máscara final'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(236),plt.imshow(target)	#Pinto la máscara
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
