@@ -12,7 +12,7 @@ def funcion():
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\2B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -32,7 +32,7 @@ def funcion():
 		plot_hough = 1
 		plot_gradientes = 0
 
-		numero_bandas = 2
+		numero_bandas = 4
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
@@ -93,13 +93,13 @@ def funcion():
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>15):	#Para gasolinera
+			while(lineas_detectadas>30):	#Para gasolinera
 			# while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-5*numpy.pi/180,max_theta=numpy.pi/2+5*numpy.pi/180)
 				# print(lines)
 				lineas_detectadas = len(lines)
 				print('Líneas detectadas:',len(lines),'---','Umbral:', umbral)
-				umbral += 75
+				umbral += 25
 
 			print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 			#print(lines)
@@ -142,7 +142,7 @@ def funcion():
 					if primera_iter == 0:		#else:
 						for j in vector_alturas:
 							print('elemento vector:',j)
-							if abs(i[0][0] - j) < 150:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
+							if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 								print('Misma línea-------------------------------')
 								print('Vector_alturas:',vector_alturas)
 								print('Vector_angulos:',vector_angulos)
@@ -199,7 +199,7 @@ def funcion():
 			while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 				altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 				altura2 = alturas_ordenadas[i+1]
-				if altura2 - altura1 <= 350:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+				if altura2 - altura1 <= 150:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 					vector_mascara.append([altura1, altura2])
 					alturas.append(altura1)
 					alturas.append(altura2)
@@ -260,8 +260,9 @@ def funcion():
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
 				# print(lim_inferior, lim_superior)
-				mascara1[lim_inferior:lim_superior, :] = 1
-
+				mascara1[lim_inferior-10 : lim_superior+10, :] = 1		#Límite superior - 10 píxeles y límite inferio + 10 píxeles
+																		#para en caso de que la banda no se completamente horizontal,
+																		#asegurarnos que en la banda entra todo el código
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 ############## WHILEEEEEEEEEEEEEEEEEE
@@ -310,7 +311,7 @@ def funcion():
 					# print(aux1[indice] + 4 * ancho)
 					# print(vector_indices[i])
 
-					if vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0:	
+					if (vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0): 	
 						
 						vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 						numero_de_parejas = numero_de_parejas + 1
@@ -332,12 +333,14 @@ def funcion():
 				print('Vector máscara tras añadir líneas desechadas:', vector_mascara)
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 				print('')
+
 ############### POR AHORA SE RELLENA HACIA AMBOS LADOS, HABRÁ QUE SABER DE ALGUNA MANERA QUÉ LADO ES EL CORRECTO #####################################
 ############### TAMBIÉN MIRAR POR SI PUEDE SER UNA LÍNEA QUE ESTÁ EN LOS PRODUCTOS Y QUE POR LO TANTO NO SIRVE #######################################
 
 			banda_artificial = 0
 
-			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas and banda_artificial == 1:	#Hay que crear artificialmente bandas horizontales
+			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+				print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 				#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 				#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
 				separacion_teorica = int(height / numero_bandas)								
@@ -347,7 +350,7 @@ def funcion():
 					# print(i)							#para saber qué bandas son las que hay que crear artificialmente 
 					ubicado = 0
 					indice_pareja = 1
-					altura_de_abajo = vector_mascara[i][1]
+					altura_de_abajo = vector_mascara[i][1]				#Límite inferior de las parejas ya formadas
 					# if altura_de_arriba - separacion <= 0:			#Compruebo si es la banda de más arriba
 					# 	vector_ocupacion[0] = 1
 					# elif altura_de_arriba + separacion >= height:		#Compruebo si es la banda de más abajo
@@ -363,32 +366,33 @@ def funcion():
 				
 				#Saco la separación que hay entre dos bandas consecutivas
 				i = 0				
+				vector_separaciones = []
 				while(i < numero_bandas - 1):
 					if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1:
-						separacion1 = vector_mascara[i][0] - vector_mascara[i-1][0]	
-						separacion2 = vector_mascara[i][1] - vector_mascara[i-1][1]				
-						break
+						altura1_media = int((vector_mascara[i-1][0] + vector_mascara[i-1][1]) / 2)
+						altura2_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
+						vector_separaciones.append(altura2_media - altura1_media)
+						i = i + 2
 					elif vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1 and i < numero_bandas - 2:
-						separacion1 = vector_mascara[i+1][0] - vector_mascara[i][0]	
-						separacion2 = vector_mascara[i+1][1] - vector_mascara[i][1]						
-						break								
+						altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
+						altura2_media = int((vector_mascara[i+1][0] + vector_mascara[i+1][1]) / 2)
+						vector_separaciones.append(altura2_media - altura1_media)	
+						i = i + 2	
 					else:
 						pass	
+					i = i + 1		
 
-
-#######################Mirar el caso en el que no hay dos bandas detectadas consecutivas###############################################
-
-
-					i = i + 1	
-
-				separacion = int((separacion1 + separacion2) / 2)
-				print('Separación media entre bandas:', separacion)
-				print('')
+######################################## MIRAR EL CASO EN QUE NO HAY BANDAS CONSECUTIVAS ###############################################
 
 				print('Vector máscara:', vector_mascara)
 				print('Vector ocupación:', vector_ocupacion)
 				print('')
-				
+
+				print('Vector separaciones:', vector_separaciones)
+				separacion = int(sum(vector_separaciones)/len(vector_separaciones))
+				print('Separación media entre bandas:', separacion)
+				print('')
+									
 				for i in range(len(vector_ocupacion)):	#Miro si la banda de arriba o de abajo de la vacía está ocupada para usarla como referencia
 					print(i)
 					if vector_ocupacion[i] == 0 and vector_ocupacion[i-1] == 1:
@@ -400,23 +404,26 @@ def funcion():
 						vector_mascara.insert(i, [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
 						print('Añadida banda artificial:', [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
 						numero_bandas = numero_bandas + 1
-						
+					else:
+						pass	
 
 				print('Vector máscara tras relleno artificial:', vector_mascara)
-				
+				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+				print('')
+
 				# for i in range(numero_bandas):
 				# 	pass
 				
 
 			#Creamos máscara para filtrar por alturas usando el relleno de líneas sueltas también
-			mascara2 = numpy.zeros((height, width),numpy.uint8)
+			matriz_auxiliar = numpy.zeros((height, width),numpy.uint8)
 			for h0, h1 in vector_mascara:
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
 				# print(lim_inferior, lim_superior)
-				mascara2[lim_inferior:lim_superior, :] = 1
+				matriz_auxiliar[lim_inferior:lim_superior, :] = 1
 
-			# print(mascara.max())
+			mascara2 = cv2.bitwise_or(mascara1, matriz_auxiliar)
 
 			target = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
