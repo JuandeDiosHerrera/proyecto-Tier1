@@ -39,7 +39,7 @@ def funcion():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		2 		   --- 		 15 		 --- 			150 		   	 --- 			  350 			      --- 		 Límite inferior + 4 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		3 		   --- 		 20 		 --- 			100 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		4 		   --- 		 30 		 --- 			100  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -260,9 +260,9 @@ def funcion():
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
 				# print(lim_inferior, lim_superior)
-				mascara1[lim_inferior-10 : lim_superior+10, :] = 1		#Límite superior - 10 píxeles y límite inferio + 10 píxeles
-																		#para en caso de que la banda no se completamente horizontal,
-																		#asegurarnos que en la banda entra todo el código
+				mascara1[lim_inferior-20 : lim_superior+20, :] = 1		#Límite superior - 20 píxeles y límite inferio + 20 píxeles
+																		#para en caso de que la banda no sea completamente horizontal,
+																		#asegurarnos que en la banda entra todo el código de barras
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 ############## WHILEEEEEEEEEEEEEEEEEE
@@ -367,24 +367,28 @@ def funcion():
 				#Saco la separación que hay entre dos bandas consecutivas
 				i = 0				
 				vector_separaciones = []
-				while(i < numero_bandas - 1):
-					if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1:
-						altura1_media = int((vector_mascara[i-1][0] + vector_mascara[i-1][1]) / 2)
-						altura2_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
-						vector_separaciones.append(altura2_media - altura1_media)
-						i = i + 2
-					elif vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1 and i < numero_bandas - 2:
+				while(i < len(vector_ocupacion) - 1):		#Ejemplo: 4 bandas -> i va [0, 2]
+					# if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1 and i > 0:
+					# 	altura1_media = int((vector_mascara[i-1][0] + vector_mascara[i-1][1]) / 2)
+					# 	altura2_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
+					# 	vector_separaciones.append(altura2_media - altura1_media)
+					# 	i = i + 2
+					if vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1:
 						altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
 						altura2_media = int((vector_mascara[i+1][0] + vector_mascara[i+1][1]) / 2)
 						vector_separaciones.append(altura2_media - altura1_media)	
-						i = i + 2	
+						# i = i + 1	
 					else:
-						pass	
+						pass
 					i = i + 1		
 
-######################################## MIRAR EL CASO EN QUE NO HAY BANDAS CONSECUTIVAS ###############################################
+				if len(vector_separaciones) == 0:
+					print('No hay dos bandas consecutivas para obtener la separación entre ellas')	
+					
+######################################## MIRAR EL CASO EN QUE NO HAY BANDAS CONSECUTIVAS (EL ELSE) ###############################################
 
 				print('Vector máscara:', vector_mascara)
+				print('Separación teórica:', separacion_teorica)
 				print('Vector ocupación:', vector_ocupacion)
 				print('')
 
@@ -394,18 +398,33 @@ def funcion():
 				print('')
 									
 				for i in range(len(vector_ocupacion)):	#Miro si la banda de arriba o de abajo de la vacía está ocupada para usarla como referencia
-					print(i)
-					if vector_ocupacion[i] == 0 and vector_ocupacion[i-1] == 1:
-						vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
-						print('Añadida banda artificial:', [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
-						numero_bandas = numero_bandas + 1
+					print('Índice vector ocupación:', i)
+					if vector_ocupacion[i] == 0: 
+						if vector_ocupacion[i-1] == 1 and i > 0:
+							print('i-1')
+							print('Pareja usada:', [vector_mascara[i-1][0], vector_mascara[i-1][1]])
+							vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
+							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
+							numero_bandas = numero_bandas + 1
+							print('Vector máscara tras añadir banda artificial:', vector_mascara)
+							vector_ocupacion[i] = 1
+							print('Vector ocupación:', vector_ocupacion)
 
-					elif vector_ocupacion[i] == 0 and vector_ocupacion[i + 1] == 1:
-						vector_mascara.insert(i, [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
-						print('Añadida banda artificial:', [vector_mascara[i+1][0]+separacion, vector_mascara[i+1][1]+separacion])
-						numero_bandas = numero_bandas + 1
+						elif vector_ocupacion[i+1] == 1 and i < len(vector_ocupacion) - 1:
+							print('i+1')
+							print('Pareja usada:', [vector_mascara[i+1][0], vector_mascara[i+1][1]])
+							vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion, vector_mascara[i+1][1]-separacion])
+							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
+							numero_bandas = numero_bandas + 1
+							print('Vector máscara tras añadir banda artificial:', vector_mascara)
+							vector_ocupacion[i] = 1
+							print('Vector ocupación:', vector_ocupacion)
+						else:
+							print('No se puede tomar ninguna banda de referencia')
 					else:
 						pass	
+					print('')
+######################################## MIRAR EL CASO EN QUE NO HAY BANDA OCUPADA NI POR ARRIBA NI POR ABAJO DE LA VACÍA (EL ELSE) ###############################################
 
 				print('Vector máscara tras relleno artificial:', vector_mascara)
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
@@ -420,8 +439,17 @@ def funcion():
 			for h0, h1 in vector_mascara:
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
-				# print(lim_inferior, lim_superior)
+				print(lim_inferior, lim_superior)
 				matriz_auxiliar[lim_inferior:lim_superior, :] = 1
+
+			plt.subplot(121),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			plt.title('Matriz original'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(122),plt.imshow(matriz_auxiliar, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			plt.title('Matriz auxiliar'), plt.xticks([]), plt.yticks([])
+			
+			plt.show()
+
 
 			mascara2 = cv2.bitwise_or(mascara1, matriz_auxiliar)
 
