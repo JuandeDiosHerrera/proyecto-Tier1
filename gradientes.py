@@ -93,7 +93,7 @@ def funcion():
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>30):	#Para gasolinera
+			while(lineas_detectadas>40):	#Para gasolinera
 			# while(lineas_detectadas>25):	#Para Mercadona
 				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-5*numpy.pi/180,max_theta=numpy.pi/2+5*numpy.pi/180)
 				# print(lines)
@@ -141,8 +141,8 @@ def funcion():
 
 					if primera_iter == 0:		#else:
 						for j in vector_alturas:
-							print('elemento vector:',j)
-							if abs(i[0][0] - j) < 100:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
+							print('Elemento vector:',j)
+							if abs(i[0][0] - j) < 115:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 								print('Misma línea-------------------------------')
 								print('Vector_alturas:',vector_alturas)
 								print('Vector_angulos:',vector_angulos)
@@ -367,7 +367,7 @@ def funcion():
 				#Saco la separación que hay entre dos bandas consecutivas
 				i = 0				
 				vector_separaciones = []
-				while(i < len(vector_ocupacion) - 1):		#Ejemplo: 4 bandas -> i va [0, 2]
+				while(i < len(vector_ocupacion) - 1):		#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
 					# if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1 and i > 0:
 					# 	altura1_media = int((vector_mascara[i-1][0] + vector_mascara[i-1][1]) / 2)
 					# 	altura2_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
@@ -401,9 +401,9 @@ def funcion():
 					print('Índice vector ocupación:', i)
 					if vector_ocupacion[i] == 0: 
 						if vector_ocupacion[i-1] == 1 and i > 0:
-							print('i-1')
+							# print('i-1')
 							print('Pareja usada:', [vector_mascara[i-1][0], vector_mascara[i-1][1]])
-							vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion, vector_mascara[i-1][1]+separacion])
+							vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion-20, vector_mascara[i-1][1]+separacion+20])
 							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
 							numero_bandas = numero_bandas + 1
 							print('Vector máscara tras añadir banda artificial:', vector_mascara)
@@ -411,9 +411,9 @@ def funcion():
 							print('Vector ocupación:', vector_ocupacion)
 
 						elif vector_ocupacion[i+1] == 1 and i < len(vector_ocupacion) - 1:
-							print('i+1')
+							# print('i+1')
 							print('Pareja usada:', [vector_mascara[i+1][0], vector_mascara[i+1][1]])
-							vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion, vector_mascara[i+1][1]-separacion])
+							vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion-20, vector_mascara[i+1][1]-separacion+20])
 							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
 							numero_bandas = numero_bandas + 1
 							print('Vector máscara tras añadir banda artificial:', vector_mascara)
@@ -439,16 +439,16 @@ def funcion():
 			for h0, h1 in vector_mascara:
 				lim_inferior = int(h0) 
 				lim_superior = int(h1) 
-				print(lim_inferior, lim_superior)
+				print(lim_inferior, lim_superior, int((lim_inferior+lim_superior)/2))
 				matriz_auxiliar[lim_inferior:lim_superior, :] = 1
 
-			plt.subplot(121),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-			plt.title('Matriz original'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(121),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			# plt.title('Matriz original'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(122),plt.imshow(matriz_auxiliar, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-			plt.title('Matriz auxiliar'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(122),plt.imshow(matriz_auxiliar, cmap = 'gray')	#Pinto la máscara con las parejas definitivas		
+			# plt.title('Matriz auxiliar'), plt.xticks([]), plt.yticks([])
 			
-			plt.show()
+			# plt.show()
 
 
 			mascara2 = cv2.bitwise_or(mascara1, matriz_auxiliar)
