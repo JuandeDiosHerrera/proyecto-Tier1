@@ -41,7 +41,7 @@ def funcion():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		4 		   --- 		 30 		 --- 			100  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -87,15 +87,15 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
+			print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
 			edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
 			#print(edges)
-			print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
 			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
 			lineas_detectadas = 2000
 			umbral = 100
-			while(lineas_detectadas>40):	#Para gasolinera
+			while(lineas_detectadas>30):	#Para gasolinera
 			# while(lineas_detectadas>25):	#Para Mercadona
-				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-5*numpy.pi/180,max_theta=numpy.pi/2+5*numpy.pi/180)
+				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.5*numpy.pi/180,max_theta=numpy.pi/2+0.5*numpy.pi/180)
 				# print(lines)
 				lineas_detectadas = len(lines)
 				print('Líneas detectadas:',len(lines),'---','Umbral:', umbral)
@@ -246,13 +246,16 @@ def funcion():
 					
 			# Ancho de las bandas ya detectadas
 			vector_anchos = []
-			for i in range(numero_de_parejas):
-				# print(i)
-				vector_anchos.append(int(vector_mascara[i][1]-vector_mascara[i][0]))
-			print('Vector anchos:', vector_anchos)
-			ancho = max(vector_anchos)
-			print('Ancho máximo:', ancho)	
-			print('')
+			if numero_de_parejas != 0:
+				for i in range(numero_de_parejas):
+					# print(i)
+					vector_anchos.append(int(vector_mascara[i][1]-vector_mascara[i][0]))
+				print('Vector anchos:', vector_anchos)
+				ancho = max(vector_anchos)
+				print('Ancho máximo:', ancho)	
+				print('')
+			else:
+				print("No hay parejas formadas para obtener el ancho máximo")
 
 			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
 			mascara1 = numpy.zeros((height, width),numpy.uint8)
@@ -311,7 +314,7 @@ def funcion():
 					# print(aux1[indice] + 4 * ancho)
 					# print(vector_indices[i])
 
-					if (vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0): 	
+					if (vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas: 	
 						
 						vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 						numero_de_parejas = numero_de_parejas + 1
@@ -400,7 +403,7 @@ def funcion():
 				for i in range(len(vector_ocupacion)):	#Miro si la banda de arriba o de abajo de la vacía está ocupada para usarla como referencia
 					print('Índice vector ocupación:', i)
 					if vector_ocupacion[i] == 0: 
-						if vector_ocupacion[i-1] == 1 and i > 0:
+						if vector_ocupacion[i-1] == 1 and i > 0 and numero_de_parejas < numero_bandas:
 							# print('i-1')
 							print('Pareja usada:', [vector_mascara[i-1][0], vector_mascara[i-1][1]])
 							vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion-20, vector_mascara[i-1][1]+separacion+20])
@@ -410,7 +413,7 @@ def funcion():
 							vector_ocupacion[i] = 1
 							print('Vector ocupación:', vector_ocupacion)
 
-						elif vector_ocupacion[i+1] == 1 and i < len(vector_ocupacion) - 1:
+						elif vector_ocupacion[i+1] == 1 and i < len(vector_ocupacion) - 1 and numero_de_parejas < numero_bandas:
 							# print('i+1')
 							print('Pareja usada:', [vector_mascara[i+1][0], vector_mascara[i+1][1]])
 							vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion-20, vector_mascara[i+1][1]-separacion+20])
@@ -433,7 +436,7 @@ def funcion():
 				# for i in range(numero_bandas):
 				# 	pass
 				
-
+			
 			#Creamos máscara para filtrar por alturas usando el relleno de líneas sueltas también
 			matriz_auxiliar = numpy.zeros((height, width),numpy.uint8)
 			for h0, h1 in vector_mascara:

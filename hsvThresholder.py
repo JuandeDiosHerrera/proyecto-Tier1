@@ -101,5 +101,5 @@ if useCamera:
 	cap.release()
 cv2.destroyAllWindows()
 
-# python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos Mercadona\Foto2.jpg"
-# hMin=0 sMin=100 vMin=125 hMax=15 sMax=255 vMax=255
+# python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos Mercadona\4B\Foto4.jpg"
+# hMin=5 sMin=118 vMin=171 hMax=20 sMax=200 vMax=255
