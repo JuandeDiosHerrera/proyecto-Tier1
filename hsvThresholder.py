@@ -102,4 +102,4 @@ if useCamera:
 cv2.destroyAllWindows()
 
 # python hsvThresholder.py "E:\Documents\Juan de Dios\TFG\Fotos Mercadona\4B\Foto4.jpg"
-# hMin=5 sMin=118 vMin=171 hMax=20 sMax=200 vMax=255
+# (hMin = 0 , sMin = 0, vMin = 100), (hMax = 30 , sMax = 90, vMax = 255)
