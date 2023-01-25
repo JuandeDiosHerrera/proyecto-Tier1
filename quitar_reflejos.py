@@ -44,11 +44,31 @@ def funcion():
 		gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
 
 		# Binary threshold image
-		mask = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+		_,mask = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
+
+		red = numpy.array(images[n][:,:,0]) 
+		green = numpy.array(images[n][:,:,1])
+		blue = numpy.array(images[n][:,:,2])
+		
+		mascara_red = red > 200 
+		mascara_green = green > 200 
+		mascara_blue = blue > 200
+
+		mascara = mascara_red & mascara_green & mascara_blue
+		# r = red > 200
+		# g = green > 200
+		# b = blue > 200
+
+		media_red = int(sum(red[mascara])/len(red[mascara]))
+		media_green = int(sum(green[mascara])/len(green[mascara]))		#Mirar si meterle pesos para que la media dé más parecida al color de la etiqueta
+		media_blue = int(sum(blue[mascara])/len(blue[mascara]))
+
+		# print(len(red[mascara]),len(green[mascara]),len(blue[mascara]))
+		print(media_red,media_green,media_blue)
 		
 		#First try
 		img = images[n].copy()
-		img[mask==255]=(180,180,180)
+		img[mask==255]=(media_red,media_green,media_blue)
 
 		#Second try
 		# img = numpy.where(mask == 255,180,images[n])
@@ -63,16 +83,15 @@ def funcion():
 		# 					cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
 
 		# Inpaint
-		# dst = cv2.inpaint(images[n], mask, 1, cv2.INPAINT_NS)
+		# dst = cv2.inpaint(images[n], mask, 15, cv2.INPAINT_NS)
 
-
-
+		
 
 		plt.subplot(131),plt.imshow(images[n])
 		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-		# plt.subplot(132),plt.imshow(mask,cmap = 'gray')
-		# plt.title('Mask'), plt.xticks([]), plt.yticks([])
+		plt.subplot(132),plt.imshow(mask,cmap = 'gray')
+		plt.title('Mask'), plt.xticks([]), plt.yticks([])
 
 		plt.subplot(133),plt.imshow(img)
 		plt.title('Result'), plt.xticks([]), plt.yticks([])
