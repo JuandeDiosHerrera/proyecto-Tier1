@@ -39,11 +39,11 @@ def funcion():
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- 		2 		   --- 		 15 		 --- 			150 		   	 --- 			  350 			      --- 		 Límite inferior + 4 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 			  250 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 			  250 			      --- 		 Límite inferior + 3 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 			  150 			      --- 		 Límite inferior + 3 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 			  150 			      --- 		 Límite inferior + 2 * ancho máximo		      ---
+# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 			  150 			      --- 		 Límite inferior + 3 * ancho máximo		      ---
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		#Busco las bandas horizontales por su color
@@ -319,7 +319,7 @@ def funcion():
 						vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 						numero_de_parejas = numero_de_parejas + 1
 						vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
-						print('Línea rellenada hacia ambos lados')
+						print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 						print('Vector máscara tras añadir la línea:', vector_mascara)
 						print('Vector límites inferiores tras añadir la línea:', vector_limites_inferiores)
 					else:
@@ -332,7 +332,7 @@ def funcion():
 					# print(vector_indices)
 					print('')
 
-				print('Vector límites inferiores parejas tras añadir línea:', vector_limites_inferiores)
+				print('Vector límites inferiores parejas tras rellenar líneas desechadas:', vector_limites_inferiores)
 				print('Vector máscara tras añadir líneas desechadas:', vector_mascara)
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 				print('')
@@ -370,6 +370,15 @@ def funcion():
 				#Saco la separación que hay entre dos bandas consecutivas
 				i = 0				
 				vector_separaciones = []
+
+
+
+
+################### MIRAR CÓMO ARREGLAR CUANDO "VECTOR_MASCARA" TIENE MENOR LONGITUD QUE "VECTOR_OCUPACION" (LÍNEA "ALTURA2_MEDIA"") ########################################
+
+
+
+
 				while(i < len(vector_ocupacion) - 1):		#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
 					# if vector_ocupacion[i] == 1 and vector_ocupacion[i-1] == 1 and i > 0:
 					# 	altura1_media = int((vector_mascara[i-1][0] + vector_mascara[i-1][1]) / 2)
@@ -408,7 +417,9 @@ def funcion():
 							print('Pareja usada:', [vector_mascara[i-1][0], vector_mascara[i-1][1]])
 							vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion-20, vector_mascara[i-1][1]+separacion+20])
 							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
-							numero_bandas = numero_bandas + 1
+							vector_limites_inferiores.insert(i, vector_mascara[i][1])
+							print('Añadido límite inferior:', vector_limites_inferiores)
+							numero_de_parejas = numero_de_parejas + 1
 							print('Vector máscara tras añadir banda artificial:', vector_mascara)
 							vector_ocupacion[i] = 1
 							print('Vector ocupación:', vector_ocupacion)
@@ -418,7 +429,9 @@ def funcion():
 							print('Pareja usada:', [vector_mascara[i+1][0], vector_mascara[i+1][1]])
 							vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion-20, vector_mascara[i+1][1]-separacion+20])
 							print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
-							numero_bandas = numero_bandas + 1
+							vector_limites_inferiores.insert(i, vector_mascara[i][1])
+							print('Añadido límite inferior:', vector_limites_inferiores)
+							numero_de_parejas = numero_de_parejas + 1
 							print('Vector máscara tras añadir banda artificial:', vector_mascara)
 							vector_ocupacion[i] = 1
 							print('Vector ocupación:', vector_ocupacion)
@@ -428,14 +441,28 @@ def funcion():
 						pass	
 					print('')
 ######################################## MIRAR EL CASO EN QUE NO HAY BANDA OCUPADA NI POR ARRIBA NI POR ABAJO DE LA VACÍA (EL ELSE) ###############################################
-
+				print('Vector límites inferiores parejas tras crear bandas artificiales:', vector_limites_inferiores)
 				print('Vector máscara tras relleno artificial:', vector_mascara)
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 				print('')
 
 				# for i in range(numero_bandas):
 				# 	pass
-				
+
+			#Comprobamos que las bandas formadas no estén en zona de productos
+			for i in range(numero_bandas - 1):	#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
+				print(i)
+				if abs(vector_mascara[i][1]-vector_mascara[i+1][0]) < 350:
+					print(i,vector_mascara[i][1],vector_mascara[i+1][0])
+					print('Pareja eliminada:', vector_mascara[i+1])
+					vector_mascara.pop(i+1)
+					vector_limites_inferiores.pop(i+1)
+				print('Vector máscara tras eliminar parejas en zona de productos:', vector_mascara)
+
+			# #Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
+			if len(vector_mascara) < numero_bandas:
+				pass
+
 			
 			#Creamos máscara para filtrar por alturas usando el relleno de líneas sueltas también
 			matriz_auxiliar = numpy.zeros((height, width),numpy.uint8)
