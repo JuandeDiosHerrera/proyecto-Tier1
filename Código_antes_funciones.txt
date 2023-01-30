@@ -7,60 +7,6 @@ from os.path import isfile, join
 import math
 import numpy
 
-def Hough(imagen, numero_lineas_detectadas):
-	print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
-	edges = cv2.Canny(imagen,125,225,apertureSize=3,L2gradient=True)
-	#print(edges)
-	#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
-	lineas_detectadas = 2000
-	umbral = 100
-	while(lineas_detectadas>numero_lineas_detectadas):	#Para gasolinera
-	# while(lineas_detectadas>25):	#Para Mercadona
-		lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.5*numpy.pi/180,max_theta=numpy.pi/2+0.5*numpy.pi/180)
-		# print(lines)
-		lineas_detectadas = len(lines)
-		print('Líneas detectadas:',len(lines),'---','Umbral:', umbral)
-		umbral += 25
-	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
-	#print(lines)
-	print('')
-
-	return lines
-
-def pintar_lineas(imagen, height, width, lines, vector_alturas, vector_angulos):
-	img_copy = imagen.copy()									
-	if lines is not None:
-		for i in range(len(lines)):
-			#print(i)
-			rho = lines[i][0][0]
-			theta = lines[i][0][1]
-			#print(rho,theta)
-			a = math.cos(theta)
-			b = math.sin(theta)
-			x0 = a * rho				# x = rho * cos(theta)
-			y0 = b * rho				# y = rho * sin(theta)
-			pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
-			pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
-			#print(pt1,pt2)
-			cv2.line(img_copy, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
-		return img_copy
-
-	else:
-		for i in range(len(vector_alturas)):
-			#print(i)
-			rho = vector_alturas[i]
-			theta = vector_angulos[i]
-			#print(rho,theta)
-			a = math.cos(theta)
-			b = math.sin(theta)
-			x0 = a * rho				# x = rho * cos(theta)
-			y0 = b * rho				# y = rho * sin(theta)
-			pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
-			pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
-			#print(pt1,pt2)
-			cv2.line(img_copy, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
-		return img_copy
-
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
@@ -87,7 +33,6 @@ def funcion():
 		plot_gradientes = 0
 
 		numero_bandas = 4
-		numero_lineas_a_detectar = 30
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
@@ -142,13 +87,41 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
-			lines = Hough(images[n], numero_lineas_a_detectar)
+			print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
+			edges = cv2.Canny(images[n],125,225,apertureSize=3,L2gradient=True)
+			#print(edges)
+			#Búsqueda de líneas horizontales: en el rango [85º,95º] -> aumento umbral de 100 en 100 hasta quedarme con 15 líneas detectadas o menos
+			lineas_detectadas = 2000
+			umbral = 100
+			while(lineas_detectadas>30):	#Para gasolinera
+			# while(lineas_detectadas>25):	#Para Mercadona
+				lines = cv2.HoughLines(edges,rho=1,theta=numpy.pi/180,threshold=umbral,srn=0,stn=0,min_theta=numpy.pi/2-0.5*numpy.pi/180,max_theta=numpy.pi/2+0.5*numpy.pi/180)
+				# print(lines)
+				lineas_detectadas = len(lines)
+				print('Líneas detectadas:',len(lines),'---','Umbral:', umbral)
+				umbral += 25
 
-			
-			
+			print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+			#print(lines)
+			print('')
+
+			img_copy1 = images[n].copy()
+			img_copy2 = images[n].copy()
 
 			if lines is not None:
-				img_copy1 = pintar_lineas(images[n], height, width, lines, None, None)	#Para pintar todas las líneas detectadas
+				for i in range(len(lines)):
+					#print(i)
+					rho = lines[i][0][0]
+					theta = lines[i][0][1]
+					#print(rho,theta)
+					a = math.cos(theta)
+					b = math.sin(theta)
+					x0 = a * rho				# x = rho * cos(theta)
+					y0 = b * rho				# y = rho * sin(theta)
+					pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
+					pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
+					#print(pt1,pt2)
+					cv2.line(img_copy1, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 
 				#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
 				vector_alturas = []
@@ -187,7 +160,19 @@ def funcion():
 				print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 
 				#Pinto las líneas definitivas			
-				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
+				for i in range(len(vector_alturas)):
+					#print(i)
+					rho = vector_alturas[i]
+					theta = vector_angulos[i]
+					#print(rho,theta)
+					a = math.cos(theta)
+					b = math.sin(theta)
+					x0 = a * rho				# x = rho * cos(theta)
+					y0 = b * rho				# y = rho * sin(theta)
+					pt1 = (int(x0 + math.sqrt(height**2+width**2)*(-b)), int(y0 + math.sqrt(height**2+width**2)*(a)))			#Tamaño imagen: 3000(alto) x 4000(ancho)
+					pt2 = (int(x0 - math.sqrt(height**2+width**2)*(-b)), int(y0 - math.sqrt(height**2+width**2)*(a)))
+					#print(pt1,pt2)
+					cv2.line(img_copy2, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 
 			else:
 				print('Ninguna línea detectada')
@@ -464,32 +449,15 @@ def funcion():
 				# for i in range(numero_bandas):
 				# 	pass
 
-			#Copia del vector actual para comparar cuando eliminemos alguna pareja
-			vector_mascara_copia = vector_mascara
-			#Creamos máscara antes de eliminar parejas en zona de productos
-			mascara3 = numpy.zeros((height, width),numpy.uint8)
-			for h0, h1 in vector_mascara_copia:
-				lim_inferior = int(h0) 
-				lim_superior = int(h1) 
-				print(lim_inferior, lim_superior, int((lim_inferior+lim_superior)/2))
-				mascara3[lim_inferior:lim_superior, :] = 1
-			print('')
-
-			target1 = cv2.bitwise_and(images[n],images[n], mask=mascara3)
-
-			#Comprobamos que las bandas formadas no estén en zona de productos, si es así, eliminamos esa pareja
-			valor_auxiliar = 0
+			#Comprobamos que las bandas formadas no estén en zona de productos
 			for i in range(numero_bandas - 1):	#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
-				print('Índice:',i,'---',vector_mascara[i-valor_auxiliar][1],'---',vector_mascara[i+1-valor_auxiliar][0])
-				if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < 275:
+				print(i)
+				if abs(vector_mascara[i][1]-vector_mascara[i+1][0]) < 350:
+					print(i,vector_mascara[i][1],vector_mascara[i+1][0])
 					print('Pareja eliminada:', vector_mascara[i+1])
 					vector_mascara.pop(i+1)
 					vector_limites_inferiores.pop(i+1)
-					print('Vector máscara tras eliminar pareja en zona de productos:', vector_mascara)
-					valor_auxiliar = valor_auxiliar + 1
-
-				print('')
-
+				print('Vector máscara tras eliminar parejas en zona de productos:', vector_mascara)
 
 			# #Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
 			if len(vector_mascara) < numero_bandas:
@@ -503,33 +471,20 @@ def funcion():
 				lim_superior = int(h1) 
 				print(lim_inferior, lim_superior, int((lim_inferior+lim_superior)/2))
 				matriz_auxiliar[lim_inferior:lim_superior, :] = 1
-			print('')
 
-			mascara2 = cv2.bitwise_or(mascara1, matriz_auxiliar)
+			# plt.subplot(121),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			# plt.title('Matriz original'), plt.xticks([]), plt.yticks([])
 
-			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
-
-			# plt.subplot(231),plt.imshow(images[n])
-			# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(232),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-			# plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(233),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara con las parejas definitivas		
-			# plt.title('Parejas finales'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(234),plt.imshow(target1)	#Pinto la máscara
-			# plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(235),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos		
-			# plt.title('Parejas sin productos'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(236),plt.imshow(target2)	#Pinto la máscara
-			# plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(122),plt.imshow(matriz_auxiliar, cmap = 'gray')	#Pinto la máscara con las parejas definitivas		
+			# plt.title('Matriz auxiliar'), plt.xticks([]), plt.yticks([])
 			
 			# plt.show()
 
-			plot_hough = 1
+
+			mascara2 = cv2.bitwise_or(mascara1, matriz_auxiliar)
+
+			target = cv2.bitwise_and(images[n],images[n], mask=mascara2)
+
 			if plot_hough == 1:
 				plt.subplot(231),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -537,11 +492,8 @@ def funcion():
 				# plt.subplot(232),plt.imshow(edges,cmap = 'gray')
 				# plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
 
-				# plt.subplot(232),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
-				# plt.title('Líneas detectadas'), plt.xticks([]), plt.yticks([])
-
 				plt.subplot(232),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+				plt.title('Líneas detectadas '), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(233),plt.imshow(img_copy2)	#Pinto las líneas definitivas
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
@@ -552,12 +504,12 @@ def funcion():
 				plt.subplot(235),plt.imshow(mascara2, cmap = 'gray')	#Pinto las bandas con todas las parejas formadas
 				plt.title('Máscara final'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(236),plt.imshow(target2)	#Pinto la máscara
+				plt.subplot(236),plt.imshow(target)	#Pinto la máscara
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
 		# Cálculo gradientes y conversión a valores enteros positivos
-		target_gray = cv2.cvtColor(target2, cv2.COLOR_RGB2GRAY)		
+		target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)		
 
 		grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 		abs_grad_x = cv2.convertScaleAbs(grad_x)
@@ -637,9 +589,3 @@ def funcion():
 
 if __name__ == "__main__":              
 	funcion()
-
-
-
-
-
-
