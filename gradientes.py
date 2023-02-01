@@ -28,7 +28,7 @@ def Hough(imagen, numero_lineas_detectadas):
 	#print(lines)
 	print('')
 
-	return lines
+	return edges, lines
 
 def pintar_lineas(imagen, height, width, lines, vector_alturas, vector_angulos):
 	img_copy = imagen.copy()									
@@ -123,7 +123,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas):
 	while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 		altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 		altura2 = alturas_ordenadas[i+1]
-		if altura2 - altura1 <= 150:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+		if altura2 - altura1 <= 175:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
 			alturas.append(altura1)
 			alturas.append(altura2)
@@ -373,6 +373,7 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas
 	return vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion
 
 def eliminacion_bandas_productos(numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores):
+	print('---------------------------------------------------------- Eliminación bandas en productos --------------------------------------------------------------------')
 	valor_auxiliar = 0
 	for i in range(numero_bandas - 1):	#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
 		print('Índice:',i,'---',vector_mascara[i-valor_auxiliar][1],'---',vector_mascara[i+1-valor_auxiliar][0])
@@ -385,6 +386,8 @@ def eliminacion_bandas_productos(numero_bandas, vector_mascara, numero_de_pareja
 			numero_de_parejas = numero_de_parejas - 1
 		print('')
 	print('Número de parejas actuales:', numero_de_parejas)
+	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	print('')
 	return vector_mascara, vector_limites_inferiores, numero_de_parejas
 
 def funcion():
@@ -468,7 +471,7 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
-			lines = Hough(images[n], numero_lineas_a_detectar)				
+			edges, lines = Hough(images[n], numero_lineas_a_detectar)				
 
 			if lines is not None:
 				img_copy1 = pintar_lineas(images[n], height, width, lines, None, None)	#Para pintar todas las líneas detectadas
@@ -516,69 +519,54 @@ def funcion():
 
 			#Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
 			if numero_de_parejas < numero_bandas:
-				pass
+				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
 
 			
-			#Creamos máscara para filtrar por alturas usando el relleno de líneas sueltas también
-			matriz_auxiliar = numpy.zeros((height, width),numpy.uint8)
-			for h0, h1 in vector_mascara:
-				lim_inferior = int(h0) 
-				lim_superior = int(h1) 
-				print(lim_inferior, lim_superior, int((lim_inferior+lim_superior)/2))
-				matriz_auxiliar[lim_inferior:lim_superior, :] = 1
-			print('')
+			#Máscara definitiva
+			mascara3 = creacion_mascara(height, width, vector_mascara, flag = 0)
 
-			mascara3 = cv2.bitwise_or(mascara, matriz_auxiliar)
-
+			mascara3 = cv2.bitwise_or(mascara, mascara3)	#Las parejas detectadas directamente se ensancharon 20 píxeles hacia arriba y 20 píxeles 
+															#hacia abajo, luego hacemos una or para quedarnos con las parejas iniciales ensanchadas
+			
+			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara3)
 
-			# plt.subplot(231),plt.imshow(images[n])
-			# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+			plot_lineas = 1
+			if plot_lineas == 1:
+				plt.subplot(221),plt.imshow(images[n])
+				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-			# plt.subplot(232),plt.imshow(mascara1, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-			# plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
+				plt.subplot(222),plt.imshow(edges,cmap = 'gray')
+				plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
 
-			# plt.subplot(233),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara con las parejas definitivas		
-			# plt.title('Parejas finales'), plt.xticks([]), plt.yticks([])
+				plt.subplot(223),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
+				plt.title('Líneas detectadas'), plt.xticks([]), plt.yticks([])
 
-			# plt.subplot(234),plt.imshow(target1)	#Pinto la máscara
-			# plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
+				plt.subplot(224),plt.imshow(img_copy2)	#Pinto las líneas definitivas
+				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+				plt.show()
 
-			# plt.subplot(235),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos		
-			# plt.title('Parejas sin productos'), plt.xticks([]), plt.yticks([])
-
-			# plt.subplot(236),plt.imshow(target2)	#Pinto la máscara
-			# plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
-			
-			# plt.show()
-
-			plot_hough = 1
-			if plot_hough == 1:
+			plot_bandas = 1
+			if plot_bandas == 1:				
 				plt.subplot(231),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-				# plt.subplot(232),plt.imshow(edges,cmap = 'gray')
-				# plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
+				plt.subplot(232),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+				plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
 
-				# plt.subplot(232),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
-				# plt.title('Líneas detectadas'), plt.xticks([]), plt.yticks([])
+				plt.subplot(233),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
+				plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(232),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+				plt.subplot(234),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
+				plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(233),plt.imshow(img_copy2)	#Pinto las líneas definitivas
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+				plt.subplot(235),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
+				plt.title('Parejas definitivas'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(234),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-				plt.title('Parejas detectadas directamente'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(235),plt.imshow(mascara3, cmap = 'gray')	#Pinto las bandas con todas las parejas formadas
-				plt.title('Máscara final'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(236),plt.imshow(target2)	#Pinto la máscara
+				plt.subplot(236),plt.imshow(target2)	#Resultado con las bandas definitivas
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 				plt.show()
-
+			
 		# Cálculo gradientes y conversión a valores enteros positivos
 		target_gray = cv2.cvtColor(target2, cv2.COLOR_RGB2GRAY)		
 
