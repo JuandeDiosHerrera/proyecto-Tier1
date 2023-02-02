@@ -416,7 +416,7 @@ def funcion():
 		plot_gradientes = 0
 
 		numero_bandas = 4
-		numero_lineas_a_detectar = 30
+		numero_lineas_a_detectar = 10
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba ---
@@ -471,7 +471,86 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
-			edges, lines = Hough(images[n], numero_lineas_a_detectar)				
+
+			cuarto1 = numpy.zeros((height, width),numpy.uint8)			
+			cuarto1[0 : int(height/4), :] = 1
+
+			cuarto2 = numpy.zeros((height, width),numpy.uint8)			
+			cuarto2[int(height/4) : int(height/2), :] = 1
+
+			cuarto3 = numpy.zeros((height, width),numpy.uint8)			
+			cuarto3[int(height/2) : int(3*height/4), :] = 1
+
+			cuarto4 = numpy.zeros((height, width),numpy.uint8)			
+			cuarto4[int(3*height/4) : height, :] = 1
+
+			image1 = cv2.bitwise_and(images[n], images[n], mask=cuarto1)
+			image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
+			image3 = cv2.bitwise_and(images[n], images[n], mask=cuarto3)
+			image4 = cv2.bitwise_and(images[n], images[n], mask=cuarto4)
+
+			plot_edges = 0
+			if plot_edges == 1:
+				plt.subplot(231),plt.imshow(images[n],cmap = 'gray')
+				plt.title('Edges'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(232),plt.imshow(image1,cmap = 'gray')
+				plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(233),plt.imshow(image2,cmap = 'gray')
+				plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+
+				plt.subplot(234),plt.imshow(image3,cmap = 'gray')	#Pinto todas las líneas detectadas
+				plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(235),plt.imshow(image4,cmap = 'gray')	#Pinto las líneas definitivas
+				plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
+				plt.show()
+
+
+			edges, lines1 = Hough(image1, numero_lineas_a_detectar)	
+			img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
+
+			edges, lines2 = Hough(image2, numero_lineas_a_detectar)	
+			img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
+			
+			edges, lines3 = Hough(image3, numero_lineas_a_detectar)
+			img_copy13 = pintar_lineas(images[n], height, width, lines3, None, None)	#Para pintar todas las líneas detectadas
+				
+			edges, lines4 = Hough(image4, numero_lineas_a_detectar)	
+			img_copy14 = pintar_lineas(images[n], height, width, lines4, None, None)	#Para pintar todas las líneas detectadas
+
+			#Hay que unir los 4 elementos "lineX"
+			vector_alturas_unidas = []
+			vector_angulos_unidos = []
+			for i in lines1:
+				vector_alturas_unidas.append(i[0][0])
+				vector_angulos_unidos.append(i[0][1])
+			for i in lines2:
+				vector_alturas_unidas.append(i[0][0])
+				vector_angulos_unidos.append(i[0][1])
+			for i in lines3:
+				vector_alturas_unidas.append(i[0][0])
+				vector_angulos_unidos.append(i[0][1])
+			for i in lines4:
+				vector_alturas_unidas.append(i[0][0])
+				vector_angulos_unidos.append(i[0][1])
+
+			
+			plot_lineas = 1
+			if plot_lineas == 1:
+				plt.subplot(221),plt.imshow(img_copy11)
+				plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(222),plt.imshow(img_copy12)
+				plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+
+				plt.subplot(223),plt.imshow(img_copy13)	#Pinto todas las líneas detectadas
+				plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(224),plt.imshow(img_copy14)	#Pinto las líneas definitivas
+				plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
+				plt.show()
 
 			if lines is not None:
 				img_copy1 = pintar_lineas(images[n], height, width, lines, None, None)	#Para pintar todas las líneas detectadas
@@ -531,7 +610,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara3)
 
-			plot_lineas = 1
+			plot_lineas = 0
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -546,7 +625,7 @@ def funcion():
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
-			plot_bandas = 1
+			plot_bandas = 0
 			if plot_bandas == 1:				
 				plt.subplot(231),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
