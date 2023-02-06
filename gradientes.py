@@ -64,7 +64,7 @@ def pintar_lineas(imagen, height, width, lines, vector_alturas, vector_angulos):
 			cv2.line(img_copy, pt1, pt2, (255,0,0), 10, cv2.LINE_AA)
 		return img_copy
 
-def seleccion_lineas_definitivas(lines, separacion):
+def seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion):
 	vector_alturas = []
 	vector_angulos = []
 	primera_iter = 1
@@ -72,18 +72,18 @@ def seleccion_lineas_definitivas(lines, separacion):
 
 	print('-------------------------------------------------------------------- Selección de líneas definitivas --------------------------------------------------------------------')
 
-	for i in lines:
-		print('rho:',i[0][0])
+	for i in range(len(vector_alturas_unidas)):
+		print('rho:',vector_alturas_unidas[i])
 		distinto = 1
 		if primera_iter == 1:
-			vector_alturas.append(i[0][0])
-			vector_angulos.append(i[0][1])
+			vector_alturas.append(vector_alturas_unidas[i])
+			vector_angulos.append(vector_angulos_unidos[i])
 			primera_iter = 0
 
 		if primera_iter == 0:		#else:
 			for j in vector_alturas:
 				print('Elemento vector:',j)
-				if abs(i[0][0] - j) < separacion:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
+				if abs(vector_alturas_unidas[i] - j) < separacion:			#Líneas separadas menos de 150 píxeles se considera que representan la misma horizontal
 					print('Misma línea-------------------------------')
 					print('Vector_alturas:',vector_alturas)
 					print('Vector_angulos:',vector_angulos)
@@ -91,9 +91,9 @@ def seleccion_lineas_definitivas(lines, separacion):
 					distinto = 0
 					break
 
-			if distinto == 1:						#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
-				vector_alturas.append(i[0][0])		#lo añadimos
-				vector_angulos.append(i[0][1])
+			if distinto == 1:										#Una vez comprobado que es distinto a todos los elementos ya existentes en "vector_alturas"
+				vector_alturas.append(vector_alturas_unidas[i])		#lo añadimos
+				vector_angulos.append(vector_angulos_unidos[i])
 				print('Añadimos línea--------------------------------')
 				print('Vector_alturas:',vector_alturas)
 				print('Vector_angulos:',vector_angulos)
@@ -411,10 +411,6 @@ def funcion():
 
 		filtro_color = 0
 
-		plot_color = 1
-		plot_hough = 1
-		plot_gradientes = 0
-
 		numero_bandas = 4
 		numero_lineas_a_detectar = 10
 
@@ -450,7 +446,8 @@ def funcion():
 			# ## final mask and masked
 			# mask = cv2.bitwise_or(mask1, mask2)
 			target = cv2.bitwise_and(images[n],images[n], mask=opened_banda)
-
+			
+			plot_color = 1
 			if plot_color == 1:
 				# print('hola')
 				plt.subplot(231),plt.imshow(images[n])
@@ -471,7 +468,6 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
-
 			cuarto1 = numpy.zeros((height, width),numpy.uint8)			
 			cuarto1[0 : int(height/4), :] = 1
 
@@ -495,29 +491,30 @@ def funcion():
 				plt.title('Edges'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(232),plt.imshow(image1,cmap = 'gray')
-				plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+				plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(233),plt.imshow(image2,cmap = 'gray')
-				plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+				plt.title('2ª franja'), plt.xticks([]), plt.yticks([])	
 
 				plt.subplot(234),plt.imshow(image3,cmap = 'gray')	#Pinto todas las líneas detectadas
-				plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+				plt.title('3ª franja'), plt.xticks([]), plt.yticks([])
 
 				plt.subplot(235),plt.imshow(image4,cmap = 'gray')	#Pinto las líneas definitivas
-				plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
+				plt.title('4ª franja'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
+			edges, lines = Hough(images[n], 50)
 
-			edges, lines1 = Hough(image1, numero_lineas_a_detectar)	
+			edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
 			img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
 
-			edges, lines2 = Hough(image2, numero_lineas_a_detectar)	
+			edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
 			img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
 			
-			edges, lines3 = Hough(image3, numero_lineas_a_detectar)
+			edges3, lines3 = Hough(image3, numero_lineas_a_detectar)
 			img_copy13 = pintar_lineas(images[n], height, width, lines3, None, None)	#Para pintar todas las líneas detectadas
 				
-			edges, lines4 = Hough(image4, numero_lineas_a_detectar)	
+			edges4, lines4 = Hough(image4, numero_lineas_a_detectar)	
 			img_copy14 = pintar_lineas(images[n], height, width, lines4, None, None)	#Para pintar todas las líneas detectadas
 
 			#Hay que unir los 4 elementos "lineX"
@@ -552,11 +549,11 @@ def funcion():
 				plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
-			if lines is not None:
-				img_copy1 = pintar_lineas(images[n], height, width, lines, None, None)	#Para pintar todas las líneas detectadas
+			if len(vector_alturas_unidas) != 0:
+				img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
 
 				#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
-				vector_alturas, vector_angulos = seleccion_lineas_definitivas(lines, separacion = 115)
+				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 115)
 
 				#Pinto las líneas definitivas			
 				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
@@ -610,7 +607,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara3)
 
-			plot_lineas = 0
+			plot_lineas = 1
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -625,7 +622,7 @@ def funcion():
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
-			plot_bandas = 0
+			plot_bandas = 1
 			if plot_bandas == 1:				
 				plt.subplot(231),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -702,7 +699,8 @@ def funcion():
 		cv2.imshow('Contornos', image_copy)
 		cv2.waitKey() 
 		"""
-
+		
+		plot_gradientes = 0
 		if plot_gradientes == 1:
 			plt.subplot(231),plt.imshow(images[n],cmap = 'gray')
 			plt.title('Original Image'), plt.xticks([]), plt.yticks([])
