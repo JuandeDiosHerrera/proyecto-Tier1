@@ -125,7 +125,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas):
 		altura2 = alturas_ordenadas[i+1]
 		if altura2 - altura1 <= 175:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
-			alturas.append(altura1)
+			alturas.append(altura1)						# "altura1" es la línea de arriba y "altura2" es la línea de abajo
 			alturas.append(altura2)
 			vector_limites_inferiores.append(altura2)
 			# indice_pareja = indice_pareja + 1
@@ -201,8 +201,7 @@ def creacion_mascara(height, width, vector_mascara, flag):
 def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho):
 	#Saco ancho máximo de las bandas ya detectadas
 	#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
-	#Si es, relleno hacia un lado y hacia el otro y hago una AND con el filtro de color (con las bandas horizontales completas). Luego comparo 
-	#y me quedo con la que tenga más píxeles en blanco que será la que rellene hacia el lado correcto, decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
+	#Si es, relleno hacia un lado y hacia el otro. Luego decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
 	separacion_teorica = int(height / numero_bandas)	
 
 	print('-------------------------------------------------------------------- Relleno de líneas sueltas --------------------------------------------------------------------')
@@ -215,7 +214,7 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_pare
 		#la parte de arriba de las cajas/tetrabrick. Si se detecta el final de las cajas/tetrabrick por debajo, da igual porque nos sirve
 		#para detectar el límite superior de la banda que está debajo de la caja/tetrabrick. Para ello debo mirar que la banda de arriba
 		#de la línea desechada que queremos rellenar ya está detectada		
-		#Miro que el índice anterior no esté en el vector de índices y por lo tanto, ya es una pareja formada. También miro que desde el límite inferior de la banda de arriba a la línea haya poca distancia (se ha establecido una distancia de 3 veces el ancho máximo)			
+		#También miro que desde el límite inferior de la banda de arriba a la línea haya suficiente distancia (se ha establecido una distancia de 3 veces el ancho máximo)			
 		
 		# indice_banda_anterior = vector_indices[i] - 1
 		# altura_lim_inferior_banda_anterior = vector_mascara[indice_banda_anterior][1]
@@ -245,9 +244,19 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_pare
 ############### POR AHORA SE RELLENA HACIA AMBOS LADOS, HABRÁ QUE SABER DE ALGUNA MANERA QUÉ LADO ES EL CORRECTO #####################################
 ############### TAMBIÉN MIRAR POR SI PUEDE SER UNA LÍNEA QUE ESTÁ EN LOS PRODUCTOS Y QUE POR LO TANTO NO SIRVE #######################################
 
-		if (vector_desechadas[i] > aux1[indice] + 2 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas: 	
-			
-			vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
+		#Condiciones:
+		# - Línea desechada separada más de 3 veces el ancho máximo de las bandas ya detectadas ó tener índice 0 y por tanto ser la banda de más arriba
+		# - Que todavía falten parejas por formar (menos parejas que bandas)
+		# - Estar en una franja en la que no hay ninguna pareja aún	
+
+
+
+
+
+
+
+		if (vector_desechadas[i] > aux1[indice] + 3 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas: 				
+			vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])	#Relleno hacia ambos lados
 			vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
 			numero_de_parejas = numero_de_parejas + 1
 			print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
@@ -374,8 +383,12 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas
 
 def eliminacion_bandas_productos(numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores):
 	print('---------------------------------------------------------- Eliminación bandas en productos --------------------------------------------------------------------')
+	print('Vector máscara:', vector_mascara)
+	print('')
+
 	valor_auxiliar = 0
-	for i in range(numero_bandas - 1):	#Ejemplo: 4 bandas -> i va [0, 2] < 4 - 1 = 3
+	#Quizás hacer el bucle for con la longitud de "vector_mascara" -> for i in range(len(vector_mascara) - 1)
+	for i in range(len(vector_mascara) - 1):	#Ejemplo: 4 bandas detectadas -> i va [0, 2] < 4 - 1 = 3
 		print('Índice:',i,'---',vector_mascara[i-valor_auxiliar][1],'---',vector_mascara[i+1-valor_auxiliar][0])
 		if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < 275:	#Parejas muy próximas -> eliminamos la de abajo
 			print('Pareja eliminada:', vector_mascara[i+1])
@@ -385,6 +398,8 @@ def eliminacion_bandas_productos(numero_bandas, vector_mascara, numero_de_pareja
 			valor_auxiliar = valor_auxiliar + 1
 			numero_de_parejas = numero_de_parejas - 1
 		print('')
+
+	print('Vector máscara:', vector_mascara)
 	print('Número de parejas actuales:', numero_de_parejas)
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
@@ -534,7 +549,7 @@ def funcion():
 				vector_angulos_unidos.append(i[0][1])
 
 			
-			plot_lineas = 1
+			plot_lineas = 0
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(img_copy11)
 				plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
@@ -607,7 +622,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara3)
 
-			plot_lineas = 1
+			plot_lineas = 0
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
