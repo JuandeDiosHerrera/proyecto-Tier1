@@ -111,7 +111,7 @@ def ordena_alturas(vector_alturas, vector_angulos):
 	print('')
 	return tam_vector, alturas_ordenadas, angulos_ordenados
 
-def emparejamiento_lineas(tam_vector, alturas_ordenadas):
+def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas):
 	print('-------------------------------------------------------------------- Emparejamiento de líneas --------------------------------------------------------------------')
 	vector_mascara = []			 #Vector de parejas de alturas
 	alturas = []				 #Vector de alturas definitivas ordenadas
@@ -152,7 +152,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas):
 		vector_indices.append(indice_pareja)
 		print('Última línea se queda sola para emparejar -> se añade a las líneas desechadas')
 		print('')
-
+	
 	# print(vector_mascara[0][0])
 	# print(vector_mascara[0][1])		#Elementos de la primera pareja de líneas horizontales
 	print('Vector máscara:', vector_mascara)
@@ -165,10 +165,33 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas):
 	print('Índices líneas desechadas:', vector_indices)
 	numero_lineas_desechadas = len(vector_desechadas)
 	print('Número de líneas desechadas:', numero_lineas_desechadas)
-	print('')
+	
 
+	separacion_teorica = int(height / numero_bandas)								
+	vector_ocupacion = numpy.zeros(numero_bandas)	#Para saber qué posiciones están ocupadas (0 libre - 1 ocupado)
+
+	for i in range(numero_de_parejas):		#Igual que range(len(vector_mascara))	Ubico cada pareja en "vector_ocupacion"
+		# print(i)							#para saber qué bandas son las que hay que crear artificialmente 
+		ubicado = 0
+		indice_pareja = 1
+		altura_de_abajo = vector_mascara[i][1]				#Límite inferior de las parejas ya formadas
+		# if altura_de_arriba - separacion <= 0:			#Compruebo si es la banda de más arriba
+		# 	vector_ocupacion[0] = 1
+		# elif altura_de_arriba + separacion >= height:		#Compruebo si es la banda de más abajo
+		# 	vector_ocupacion[-1] = 1
+		# else:
+			
+		while ubicado == 0:		#Averiguo qué posición tiene cada pareja en el "vector_ocupacion"
+			factor = indice_pareja * separacion_teorica
+			if altura_de_abajo <= factor:
+				vector_ocupacion[indice_pareja - 1] = 1
+				ubicado = 1
+			indice_pareja = indice_pareja + 1
+
+	print('Vector ocupación:', vector_ocupacion)
+	print('')
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
-	return vector_mascara, alturas, vector_limites_inferiores, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas
+	return vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas
 
 def ancho_bandas(numero_de_parejas, vector_mascara):
 	vector_anchos = []
@@ -198,11 +221,10 @@ def creacion_mascara(height, width, vector_mascara, flag):
 			mascara[lim_inferior : lim_superior, :] = 1
 	return mascara
 
-def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho):
+def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho):
 	#Saco ancho máximo de las bandas ya detectadas
 	#Compruebo si con la altura (componente "y") que tiene en la imagen puede ser una línea de banda 
 	#Si es, relleno hacia un lado y hacia el otro. Luego decremento "numero_lineas_desechadas" e incremento "numero_de_parejas"
-	separacion_teorica = int(height / numero_bandas)	
 
 	print('-------------------------------------------------------------------- Relleno de líneas sueltas --------------------------------------------------------------------')
 
@@ -248,10 +270,9 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_pare
 		# - Línea desechada separada más de 3 veces el ancho máximo de las bandas ya detectadas ó tener índice 0 y por tanto ser la banda de más arriba
 		# - Que todavía falten parejas por formar (menos parejas que bandas)
 		# - Estar en una franja en la que no hay ninguna pareja aún	
-
-
-
-
+		separacion_teorica = int(height / numero_bandas)					
+		indice_vector_ocupacion = 0
+		alturas_franjas = [separacion_teorica * (i + 1) for i in range(numero_bandas)]
 
 
 
@@ -277,33 +298,13 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_pare
 	print('Vector máscara tras añadir líneas desechadas:', vector_mascara)
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
-	return vector_mascara, vector_limites_inferiores, numero_de_parejas, numero_lineas_desechadas
+	return vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas
 
-def bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas):
+def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas):
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
-	separacion_teorica = int(height / numero_bandas)								
-	vector_ocupacion = numpy.zeros(numero_bandas)	#Para saber qué posiciones están ocupadas (0 libre - 1 ocupado)
-
-	for i in range(numero_de_parejas):		#Igual que range(len(vector_mascara))	Ubico cada pareja en "vector_ocupacion"
-		# print(i)							#para saber qué bandas son las que hay que crear artificialmente 
-		ubicado = 0
-		indice_pareja = 1
-		altura_de_abajo = vector_mascara[i][1]				#Límite inferior de las parejas ya formadas
-		# if altura_de_arriba - separacion <= 0:			#Compruebo si es la banda de más arriba
-		# 	vector_ocupacion[0] = 1
-		# elif altura_de_arriba + separacion >= height:		#Compruebo si es la banda de más abajo
-		# 	vector_ocupacion[-1] = 1
-		# else:
-			
-		while ubicado == 0:		#Averiguo qué posición tiene cada pareja en el "vector_ocupacion"
-			factor = indice_pareja * separacion_teorica
-			if altura_de_abajo <= factor:
-				vector_ocupacion[indice_pareja - 1] = 1
-				ubicado = 1
-			indice_pareja = indice_pareja + 1
-	
+		
 	#Saco la separación que hay entre dos bandas consecutivas
 	i = 0				
 	vector_separaciones = []
@@ -329,7 +330,7 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas
 		print('No hay dos bandas consecutivas para obtener la separación entre ellas')	
 		
 ######################################## MIRAR EL CASO EN QUE NO HAY BANDAS CONSECUTIVAS (EL ELSE) ###############################################
-
+	separacion_teorica = int(height / numero_bandas)				
 	print('Vector máscara:', vector_mascara)
 	print('Separación teórica:', separacion_teorica)
 	print('Vector ocupación:', vector_ocupacion)
@@ -580,7 +581,7 @@ def funcion():
 			tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
 
 			#Emparejamos las líneas detectadas
-			vector_mascara, alturas, vector_limites_inferiores, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas)
+			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas)
 								
 			# Ancho de las bandas ya detectadas
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
@@ -590,11 +591,11 @@ def funcion():
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 			if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
+				vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
 
 			#En caso de que falten bandas por detectar, las creo artificialmente
 			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
+				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
 			
 			#Copia del vector actual para comparar cuando eliminemos alguna pareja
 			vector_mascara_copia = vector_mascara
@@ -610,7 +611,7 @@ def funcion():
 
 			#Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
 			if numero_de_parejas < numero_bandas:
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
+				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
 
 			
 			#Máscara definitiva
