@@ -272,17 +272,39 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupaci
 		# - Estar en una franja en la que no hay ninguna pareja aún	
 		separacion_teorica = int(height / numero_bandas)					
 		indice_vector_ocupacion = 0
-		alturas_franjas = [separacion_teorica * (i + 1) for i in range(numero_bandas)]
+		alturas_franjas = [separacion_teorica * (i + 1) for i in range(0, numero_bandas)]
+		print('Franjas:', alturas_franjas)
 
+		relleno = 0
+		for j in range(len(alturas_franjas)):
+			if j == 0:	#Con el índice 0 se compara con altura 0 y el primer elemento de "alturas_franjas"
+				if vector_desechadas[i] > 0 and vector_desechadas[i] < alturas_franjas[j] and vector_ocupacion[j] == 0:
+					relleno = 1 
+					print('Franja superior:', 0, '---','Franja inferior:', alturas_franjas[j], '---', 'Elemento vector ocupación:', vector_ocupacion[j], '---', 'Relleno:', relleno)
+					break
+				else:				
+					relleno = 0
+					print('Franja superior:', 0, '---','Franja inferior:', alturas_franjas[j], '---', 'Elemento vector ocupación:', vector_ocupacion[j], '---', 'Relleno:', relleno)
+			else:
+				if vector_desechadas[i] > alturas_franjas[j-1] and vector_desechadas[i] < alturas_franjas[j] and vector_ocupacion[j] == 0:
+					relleno = 1 
+					print('Franja superior:', alturas_franjas[j-1], '---','Franja inferior:', alturas_franjas[j], '---', 'Elemento vector ocupación:', vector_ocupacion[j], '---', 'Relleno:', relleno)
+					break
+				else:				
+					relleno = 0
+					print('Franja superior:', alturas_franjas[j-1], '---','Franja inferior:', alturas_franjas[j], '---', 'Elemento vector ocupación:', vector_ocupacion[j], '---', 'Relleno:', relleno)
 
-
-		if (vector_desechadas[i] > aux1[indice] + 3 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas: 				
+		print('Valor de j al salir del bucle:', j)
+		# "aux1[indice]" es la altura del límite de abajo de la banda más cercana por arriba a la línea desechada en cuestión
+		if (vector_desechadas[i] > aux1[indice] + 3 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas and relleno == 1: 				
 			vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])	#Relleno hacia ambos lados
 			vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
+			vector_ocupacion[j] = 1
 			numero_de_parejas = numero_de_parejas + 1
 			print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 			print('Vector máscara tras añadir la línea:', vector_mascara)
 			print('Vector límites inferiores tras añadir la línea:', vector_limites_inferiores)
+			print('Vector ocupación:', vector_ocupacion)
 		else:
 			print('Línea eliminada definitivamente')
 		
