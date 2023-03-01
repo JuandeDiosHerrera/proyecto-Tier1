@@ -123,7 +123,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas):
 	while i < tam_vector - 1:		#Si "i" tiene valor correspondiente al último elemento de la lista, no lo podemos emparejar con ninguno,
 		altura1 = alturas_ordenadas[i]		#luego el máximo valor de "i" es el penúltimo elemento
 		altura2 = alturas_ordenadas[i+1]
-		if altura2 - altura1 <= 400 and altura2 - altura1 >= 350:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+		if altura2 - altura1 <= 175 and altura2 - altura1 >= 100:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
 			alturas.append(altura1)						# "altura1" es la línea de arriba y "altura2" es la línea de abajo
 			alturas.append(altura2)
@@ -296,7 +296,7 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupaci
 
 		print('Valor de j al salir del bucle:', j)
 		# "aux1[indice]" es la altura del límite de abajo de la banda más cercana por arriba a la línea desechada en cuestión
-		if (vector_desechadas[i] > aux1[indice] + 4 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas and relleno == 1: 				
+		if (vector_desechadas[i] > aux1[indice] + 3 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas and relleno == 1: 				
 			vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])	#Relleno hacia ambos lados
 			vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
 			vector_ocupacion[j] = 1
@@ -413,7 +413,7 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 	#Quizás hacer el bucle for con la longitud de "vector_mascara" -> for i in range(len(vector_mascara) - 1)
 	for i in range(len(vector_mascara) - 1):	#Ejemplo: 4 bandas detectadas -> i va [0, 2] < 4 - 1 = 3
 		print('Índice:',i,'---',vector_mascara[i-valor_auxiliar][1],'---',vector_mascara[i+1-valor_auxiliar][0])
-		if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < 400:	#Parejas muy próximas -> eliminamos la de abajo
+		if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < 275:	#Parejas muy próximas -> eliminamos la de abajo
 			print('Pareja eliminada:', vector_mascara[i+1])
 			vector_mascara.pop(i+1)
 			vector_limites_inferiores.pop(i+1)
@@ -453,9 +453,9 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\2B'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\2B'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -471,7 +471,7 @@ def funcion():
 
 		filtro_color = 0
 
-		numero_bandas = 2
+		numero_bandas = 4
 		numero_lineas_a_detectar = 10
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -613,7 +613,7 @@ def funcion():
 				img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
 
 				#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
-				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 175)
+				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 115)
 
 				#Pinto las líneas definitivas			
 				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
@@ -706,6 +706,18 @@ def funcion():
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 			
+		#Guardar imagen 
+		# filename = 'savedImage.jpg'
+		# target2 = cv2.cvtColor(target2, cv2.COLOR_RGB2BGR)
+		# cv2.imwrite(filename, target2)
+		# target2 = cv2.cvtColor(target2, cv2.COLOR_BGR2RGB)
+
+		#Imagen artifical con zoom (hecha a partir de un recorte)
+		imgloc = 'E:\\Downloads\\Captura.PNG'
+		img = cv2.imread(imgloc)
+		target2 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+		
+
 		# Cálculo gradientes y conversión a valores enteros positivos
 		target_gray = cv2.cvtColor(target2, cv2.COLOR_RGB2GRAY)		
 
@@ -737,13 +749,15 @@ def funcion():
 		# plt.title('Resta'), plt.xticks([]), plt.yticks([])		
 		# plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
 		# plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
-		# plt.show()		
+		# plt.show()				
 
 		# Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
-		umbral,binaria = cv2.threshold(blurred,125,255,cv2.THRESH_BINARY)	    #Para gasolinera
+		umbral,binaria = cv2.threshold(blurred,40,255,cv2.THRESH_BINARY)	    #Para gasolinera
 		# umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
 	
-		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+		# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+		kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 10))   		# (Ancho, alto)
+
 		# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
 		opened = cv2.morphologyEx(binaria, cv2.MORPH_OPEN, kernel1)
 
@@ -753,7 +767,7 @@ def funcion():
 
 		image_copy = images[n].copy()
 
-		masked = cv2.bitwise_and(images[n], images[n], mask=closed)
+		# masked = cv2.bitwise_and(images[n], images[n], mask=closed)
 		
 		"""
 		cv2.imshow('original', img)
@@ -780,8 +794,8 @@ def funcion():
 			plt.subplot(235),plt.imshow(closed,cmap = 'gray')
 			plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
 			
-			plt.subplot(236),plt.imshow(masked,cmap = 'gray')
-			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(236),plt.imshow(masked,cmap = 'gray')
+			# plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 			plt.show()	
 		
 	#############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################
