@@ -532,86 +532,198 @@ def funcion():
 		
 		# Busco las bandas horizontales por transformada de Hough
 		else:
-			cuarto1 = numpy.zeros((height, width),numpy.uint8)			
-			cuarto1[0 : int(height/4), :] = 1
+			if numero_bandas == 2:
+				cuarto1 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto1[0 : int(height/2), :] = 1
 
-			cuarto2 = numpy.zeros((height, width),numpy.uint8)			
-			cuarto2[int(height/4) : int(height/2), :] = 1
+				cuarto2 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto2[int(height/2) : height, :] = 1
 
-			cuarto3 = numpy.zeros((height, width),numpy.uint8)			
-			cuarto3[int(height/2) : int(3*height/4), :] = 1
+				image1 = cv2.bitwise_and(images[n], images[n], mask=cuarto1)
+				image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
 
-			cuarto4 = numpy.zeros((height, width),numpy.uint8)			
-			cuarto4[int(3*height/4) : height, :] = 1
+				plot_franjas = 0
+				if plot_franjas == 1:
+					plt.subplot(221),plt.imshow(images[n],cmap = 'gray')
+					plt.title('Edges'), plt.xticks([]), plt.yticks([])
 
-			image1 = cv2.bitwise_and(images[n], images[n], mask=cuarto1)
-			image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
-			image3 = cv2.bitwise_and(images[n], images[n], mask=cuarto3)
-			image4 = cv2.bitwise_and(images[n], images[n], mask=cuarto4)
+					plt.subplot(222),plt.imshow(image1,cmap = 'gray')
+					plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
 
-			plot_edges = 0
-			if plot_edges == 1:
-				plt.subplot(231),plt.imshow(images[n],cmap = 'gray')
-				plt.title('Edges'), plt.xticks([]), plt.yticks([])
+					plt.subplot(223),plt.imshow(image2,cmap = 'gray')
+					plt.title('2ª franja'), plt.xticks([]), plt.yticks([])	
+					plt.show()
 
-				plt.subplot(232),plt.imshow(image1,cmap = 'gray')
-				plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
+				edges, lines = Hough(images[n], 50)
 
-				plt.subplot(233),plt.imshow(image2,cmap = 'gray')
-				plt.title('2ª franja'), plt.xticks([]), plt.yticks([])	
+				edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
+				img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
 
-				plt.subplot(234),plt.imshow(image3,cmap = 'gray')	#Pinto todas las líneas detectadas
-				plt.title('3ª franja'), plt.xticks([]), plt.yticks([])
+				edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
+				img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
 
-				plt.subplot(235),plt.imshow(image4,cmap = 'gray')	#Pinto las líneas definitivas
-				plt.title('4ª franja'), plt.xticks([]), plt.yticks([])
-				plt.show()
-
-			edges, lines = Hough(images[n], 50)
-
-			edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
-			img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
-
-			edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
-			img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
-			
-			edges3, lines3 = Hough(image3, numero_lineas_a_detectar)
-			img_copy13 = pintar_lineas(images[n], height, width, lines3, None, None)	#Para pintar todas las líneas detectadas
+				#Hay que unir los 2 elementos "lineX"
+				vector_alturas_unidas = []
+				vector_angulos_unidos = []
+				for i in lines1:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines2:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
 				
-			edges4, lines4 = Hough(image4, numero_lineas_a_detectar)	
-			img_copy14 = pintar_lineas(images[n], height, width, lines4, None, None)	#Para pintar todas las líneas detectadas
+				plot_edges = 0
+				if plot_edges == 1:
+					plt.subplot(221),plt.imshow(img_copy11)
+					plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
 
-			#Hay que unir los 4 elementos "lineX"
-			vector_alturas_unidas = []
-			vector_angulos_unidos = []
-			for i in lines1:
-				vector_alturas_unidas.append(i[0][0])
-				vector_angulos_unidos.append(i[0][1])
-			for i in lines2:
-				vector_alturas_unidas.append(i[0][0])
-				vector_angulos_unidos.append(i[0][1])
-			for i in lines3:
-				vector_alturas_unidas.append(i[0][0])
-				vector_angulos_unidos.append(i[0][1])
-			for i in lines4:
-				vector_alturas_unidas.append(i[0][0])
-				vector_angulos_unidos.append(i[0][1])
+					plt.subplot(222),plt.imshow(img_copy12)
+					plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+					plt.show()
+			elif numero_bandas == 3:
+				cuarto1 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto1[0 : int(height/3), :] = 1
 
-			
-			plot_franjas = 0
-			if plot_franjas == 1:
-				plt.subplot(221),plt.imshow(img_copy11)
-				plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+				cuarto2 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto2[int(height/3) : int(2*height/3), :] = 1
 
-				plt.subplot(222),plt.imshow(img_copy12)
-				plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+				cuarto3 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto3[int(2*height/3) : height, :] = 1
 
-				plt.subplot(223),plt.imshow(img_copy13)	#Pinto todas las líneas detectadas
-				plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+				image1 = cv2.bitwise_and(images[n], images[n], mask=cuarto1)
+				image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
+				image3 = cv2.bitwise_and(images[n], images[n], mask=cuarto3)
 
-				plt.subplot(224),plt.imshow(img_copy14)	#Pinto las líneas definitivas
-				plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
-				plt.show()
+				plot_franjas = 1
+				if plot_franjas == 1:
+					plt.subplot(221),plt.imshow(images[n],cmap = 'gray')
+					plt.title('Edges'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(222),plt.imshow(image1,cmap = 'gray')
+					plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(223),plt.imshow(image2,cmap = 'gray')
+					plt.title('2ª franja'), plt.xticks([]), plt.yticks([])	
+
+					plt.subplot(224),plt.imshow(image3,cmap = 'gray')	#Pinto todas las líneas detectadas
+					plt.title('3ª franja'), plt.xticks([]), plt.yticks([])
+					plt.show()
+
+				edges, lines = Hough(images[n], 50)
+
+				edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
+				img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
+
+				edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
+				img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
+				
+				edges3, lines3 = Hough(image3, numero_lineas_a_detectar)
+				img_copy13 = pintar_lineas(images[n], height, width, lines3, None, None)	#Para pintar todas las líneas detectadas
+
+				#Hay que unir los 3 elementos "lineX"
+				vector_alturas_unidas = []
+				vector_angulos_unidos = []
+				for i in lines1:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines2:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines3:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				
+				plot_edges = 1
+				if plot_edges == 1:
+					plt.subplot(221),plt.imshow(img_copy11)
+					plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(222),plt.imshow(img_copy12)
+					plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+
+					plt.subplot(223),plt.imshow(img_copy13)	#Pinto todas las líneas detectadas
+					plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+					plt.show()
+			elif numero_bandas == 4:
+				cuarto1 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto1[0 : int(height/4), :] = 1
+
+				cuarto2 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto2[int(height/4) : int(height/2), :] = 1
+
+				cuarto3 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto3[int(height/2) : int(3*height/4), :] = 1
+
+				cuarto4 = numpy.zeros((height, width),numpy.uint8)			
+				cuarto4[int(3*height/4) : height, :] = 1
+
+				image1 = cv2.bitwise_and(images[n], images[n], mask=cuarto1)
+				image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
+				image3 = cv2.bitwise_and(images[n], images[n], mask=cuarto3)
+				image4 = cv2.bitwise_and(images[n], images[n], mask=cuarto4)
+
+				plot_franjas = 0
+				if plot_franjas == 1:
+					plt.subplot(231),plt.imshow(images[n],cmap = 'gray')
+					plt.title('Edges'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(232),plt.imshow(image1,cmap = 'gray')
+					plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(233),plt.imshow(image2,cmap = 'gray')
+					plt.title('2ª franja'), plt.xticks([]), plt.yticks([])	
+
+					plt.subplot(234),plt.imshow(image3,cmap = 'gray')	#Pinto todas las líneas detectadas
+					plt.title('3ª franja'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(235),plt.imshow(image4,cmap = 'gray')	#Pinto las líneas definitivas
+					plt.title('4ª franja'), plt.xticks([]), plt.yticks([])
+					plt.show()
+
+				edges, lines = Hough(images[n], 50)
+
+				edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
+				img_copy11 = pintar_lineas(images[n], height, width, lines1, None, None)	#Para pintar todas las líneas detectadas
+
+				edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
+				img_copy12 = pintar_lineas(images[n], height, width, lines2, None, None)	#Para pintar todas las líneas detectadas
+				
+				edges3, lines3 = Hough(image3, numero_lineas_a_detectar)
+				img_copy13 = pintar_lineas(images[n], height, width, lines3, None, None)	#Para pintar todas las líneas detectadas
+					
+				edges4, lines4 = Hough(image4, numero_lineas_a_detectar)	
+				img_copy14 = pintar_lineas(images[n], height, width, lines4, None, None)	#Para pintar todas las líneas detectadas
+
+				#Hay que unir los 4 elementos "lineX"
+				vector_alturas_unidas = []
+				vector_angulos_unidos = []
+				for i in lines1:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines2:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines3:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				for i in lines4:
+					vector_alturas_unidas.append(i[0][0])
+					vector_angulos_unidos.append(i[0][1])
+				
+				plot_edges = 0
+				if plot_edges == 1:
+					plt.subplot(221),plt.imshow(img_copy11)
+					plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(222),plt.imshow(img_copy12)
+					plt.title('Cuarto 2'), plt.xticks([]), plt.yticks([])	
+
+					plt.subplot(223),plt.imshow(img_copy13)	#Pinto todas las líneas detectadas
+					plt.title('Cuarto 3'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(224),plt.imshow(img_copy14)	#Pinto las líneas definitivas
+					plt.title('Cuarto 4'), plt.xticks([]), plt.yticks([])
+					plt.show()
 
 			if len(vector_alturas_unidas) != 0:
 				img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
@@ -640,9 +752,9 @@ def funcion():
 			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
 
-			# plt.subplot(111),plt.imshow(img_copy2)	#Pinto las líneas definitivas
-			# plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-			# plt.show()
+			plt.subplot(111),plt.imshow(img_copy2)	#Pinto las líneas definitivas
+			plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+			plt.show()
 
 
 
