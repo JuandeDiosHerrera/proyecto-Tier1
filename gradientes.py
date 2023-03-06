@@ -6,6 +6,13 @@ from os import listdir
 from os.path import isfile, join
 import math
 import numpy
+from lineas import *
+# from lineas import Hough
+# from lineas import pintar_lineas
+# from lineas import seleccion_lineas_definitivas
+# from lineas import ordena_alturas
+# from lineas import creacion_mascara
+
 
 def funcion():
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
@@ -13,8 +20,50 @@ def funcion():
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
-		target_gray = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)	
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
+
+		height, width, channels = images[n].shape 
+
+		#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
+		#bandas y los productos con píxeles negros
+		edges, lines = Hough(images[n], 7) 
+		print(lines)
+		print('')
+
+		vector_alturas_unidas = []
+		vector_angulos_unidos = []
+		for i in range(len(lines)):
+			#print(i)
+			vector_alturas_unidas.append(lines[i][0][0])
+			vector_angulos_unidos.append(lines[i][0][1])
+
+		print('rho:', vector_alturas_unidas)
+		print('theta:', vector_angulos_unidos)
+
+		img_copy = pintar_lineas(images[n], height, width, lines, None, None)	#Para pintar todas las líneas detectadas
+
+		#Saco las dos líneas que delimitan la banda
+		vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 300)
+
+		#Ordenamos alturas para formar máscara
+		tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
+
+		#Formamos "vector_mascara" y creamos la máscara
+		vector_mascara = []
+		# for i in range(len(alturas_ordenadas)):
+		# 	if alturas_ordenadas[i] >
+
+		alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2250]
+
+		print('alturas_ordenadas filtradas:',alturas_ordenadas)
+
+		vector_mascara.append([alturas_ordenadas[0], alturas_ordenadas[1]])
+		mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
+
+		#Aplicamos la máscara
+		target = cv2.bitwise_and(images[n],images[n], mask=mascara)
+
+		target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
 
 		#Cálculo gradientes y conversión a valores enteros positivos
 		grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
@@ -63,7 +112,7 @@ def funcion():
 
 		image_copy = images[n].copy()
 
-		# masked = cv2.bitwise_and(images[n], images[n], mask=closed)
+		masked = cv2.bitwise_and(images[n], images[n], mask=opened)
 		
 		"""
 		cv2.imshow('original', img)
@@ -72,6 +121,12 @@ def funcion():
 		cv2.imshow('Contornos', image_copy)
 		cv2.waitKey() 
 		"""
+
+
+					SACAR PIXEL CENTRAL DE LOS CÓDIGOS DE BARRAS
+
+
+
 		
 		plot_gradientes = 1
 		if plot_gradientes == 1:
@@ -81,20 +136,20 @@ def funcion():
 			plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
 			plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
-			plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
+			# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(234),plt.imshow(binaria,cmap = 'gray')
-			plt.title('Binaria'), plt.xticks([]), plt.yticks([])
-
-			plt.subplot(236),plt.imshow(opened,cmap = 'gray')
-			plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+			plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
+			plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
 			
-			plt.subplot(235),plt.imshow(closed,cmap = 'gray')
+			plt.subplot(234),plt.imshow(closed,cmap = 'gray')
 			plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
-			
-			# plt.subplot(236),plt.imshow(masked,cmap = 'gray')
-			# plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(235),plt.imshow(opened,cmap = 'gray')
+			plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(236),plt.imshow(masked)
+			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 			plt.show()	
 	
 #############################################PROBAR cv2.ADAPTIVE_THRESH_GAUSSIAN_C#########################################################

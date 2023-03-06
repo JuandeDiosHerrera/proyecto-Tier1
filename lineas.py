@@ -594,7 +594,7 @@ def funcion():
 				image2 = cv2.bitwise_and(images[n], images[n], mask=cuarto2)
 				image3 = cv2.bitwise_and(images[n], images[n], mask=cuarto3)
 
-				plot_franjas = 1
+				plot_franjas = 0
 				if plot_franjas == 1:
 					plt.subplot(221),plt.imshow(images[n],cmap = 'gray')
 					plt.title('Edges'), plt.xticks([]), plt.yticks([])
@@ -633,7 +633,7 @@ def funcion():
 					vector_alturas_unidas.append(i[0][0])
 					vector_angulos_unidos.append(i[0][1])
 				
-				plot_edges = 1
+				plot_edges = 0
 				if plot_edges == 1:
 					plt.subplot(221),plt.imshow(img_copy11)
 					plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
@@ -752,10 +752,9 @@ def funcion():
 			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
 
-			plt.subplot(111),plt.imshow(img_copy2)	#Pinto las líneas definitivas
-			plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-			plt.show()
-
+			# plt.subplot(111),plt.imshow(img_copy2)	#Pinto las líneas definitivas
+			# plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+			# plt.show()
 
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
