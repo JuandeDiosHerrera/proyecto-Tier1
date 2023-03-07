@@ -13,7 +13,6 @@ from lineas import *
 # from lineas import ordena_alturas
 # from lineas import creacion_mascara
 
-
 def funcion():
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
@@ -110,8 +109,6 @@ def funcion():
 		# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
 		opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
 
-		image_copy = images[n].copy()
-
 		masked = cv2.bitwise_and(images[n], images[n], mask=opened)
 		
 		"""
@@ -122,11 +119,40 @@ def funcion():
 		cv2.waitKey() 
 		"""
 
+		# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
+		opened_copy = opened.copy()
+		contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-					SACAR PIXEL CENTRAL DE LOS CÓDIGOS DE BARRAS
+		image_copy = images[n].copy()
 
+		"""
+		# Obtención de los rectángulos que circunscriben a los códigos de barras
+		minRect = [None]*len(contours)
+		#print(range(len(contours[0])))
+		#print(contours)
+		for i in range(len(contours[0])):
+			c = contours[0][i][0]
+			print(type(c))
+			minRect[i] = cv2.minAreaRect(c)
+		
+		# Para sacar solo las esquinas del contorno no el contorno entero	
+		for i in range(len(contours[0])):
+			x = contours[0][i][0][0]
+			y = contours[0][i][0][1]
+			#print(x,y)
+			cv2.circle(image_copy, (x,y), 7, (0,0,255), -1)
+			#cv2.drawContours(image_copy, [contours[i], [], (0,0,255), 6)
+			#cv2.drawContours(image_copy, [contours[i], 1, (0,0,255), 6)
+		"""
 
-
+		#Obtención del píxel central de los códigos de barras identificados
+		for i in contours:
+			M = cv2.moments(i)
+			if M['m00'] != 0:
+				cx = int(M['m10']/M['m00'])
+				cy = int(M['m01']/M['m00'])
+				cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
+				cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
 		
 		plot_gradientes = 1
 		if plot_gradientes == 1:
