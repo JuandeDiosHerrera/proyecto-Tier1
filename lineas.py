@@ -775,13 +775,19 @@ def funcion():
 			target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
 			#Comprobamos que las bandas formadas no estén en zona de productos, si es así, eliminamos esa pareja y formamos la máscara con las parejas eliminadas
+			
+			#############################################################################################################################################
+			#Quizás se podría quitar la eliminación de bandas en zonas de productos "eliminacion_bandas_productos()" porque
+			#con la fase de aprendizaje ya vamos a eliminar esas alturas
+			#############################################################################################################################################
+			
 			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
 			mascara3 = creacion_mascara(height, width, vector_mascara, flag = 0)	
 
 			#Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
 			if numero_de_parejas < numero_bandas:
 				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
-
+			
 			#Máscara definitiva
 			mascara4 = creacion_mascara(height, width, vector_mascara, flag = 0)
 
@@ -791,10 +797,13 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
 
-
-			
-
-
+			#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
+			#Leemos de las fotos de cerca y aplicamos "gradientes.py"
+			# all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (no se han identificado códigos de barras)
+			# if all_zeros == False: 	#Significa que no todo es cero y que por tanto hemos identificado códigos de barras
+			# 	vector_aprendizaje.append([vector_mascara[i][0], vector_mascara[i][1]])	#Añadimos la altura al vector definitivo
+			#Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa altura no es la que se añade
+			# print(vector_mascara[1][1])
 
 			plot_lineas = 0
 			if plot_lineas == 1:
