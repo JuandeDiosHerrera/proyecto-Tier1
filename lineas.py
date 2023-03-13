@@ -6,6 +6,7 @@ from os import listdir
 from os.path import isfile, join
 import math
 import numpy
+from natsort import natsorted
 
 def configuracion_numero_bandas():
 	pass	
@@ -733,7 +734,6 @@ def funcion():
 
 				#Pinto las líneas definitivas			
 				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
-
 			else:
 				print('Ninguna línea detectada')
 
@@ -797,15 +797,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
 
-			#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
-			#Leemos de las fotos de cerca y aplicamos "gradientes.py"
-			# all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (no se han identificado códigos de barras)
-			# if all_zeros == False: 	#Significa que no todo es cero y que por tanto hemos identificado códigos de barras
-			# 	vector_aprendizaje.append([vector_mascara[i][0], vector_mascara[i][1]])	#Añadimos la altura al vector definitivo
-			#Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa altura no es la que se añade
-			# print(vector_mascara[1][1])
-
-			plot_lineas = 0
+			plot_lineas = 1
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -820,7 +812,7 @@ def funcion():
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 				plt.show()
 
-			plot_bandas = 1
+			plot_bandas = 0
 			if plot_bandas == 1:				
 				plt.subplot(331),plt.imshow(img_copy2)
 				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
@@ -843,6 +835,30 @@ def funcion():
 				plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
 				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
 				plt.show()
+
+			#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
+			#Leemos de las fotos de cerca con un bucle for y aplicamos "gradientes.py"
+			#Segundo bucle para leer las fotos con zoom de las bandas identificadas
+			mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\2B'
+			onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
+			onlyfiles2 = natsorted(onlyfiles2)
+			print(onlyfiles2)
+			images2 = numpy.empty(len(onlyfiles2), dtype=object)
+			for m in range(0, len(onlyfiles2)):
+				images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
+				images2[m] = cv2.cvtColor(images2[m], cv2.COLOR_BGR2RGB)
+
+				plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
+				plt.title('Foto'), plt.xticks([]), plt.yticks([])
+				plt.show()
+			# all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
+			# if all_zeros == False: 	#Significa que no todo es cero y que por tanto hemos identificado códigos de barras
+			# 	vector_aprendizaje.append([vector_mascara[k][0], vector_mascara[k][1]])	#Añadimos la altura al vector definitivo. Cada valor del
+			#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
+			#Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
+			# print(vector_mascara[1][1])
+
+			
 			
 		#Guardar imagen 
 		# filename = 'savedImage.jpg'
