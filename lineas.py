@@ -8,8 +8,8 @@ import math
 import numpy
 from natsort import natsorted
 
-def configuracion_numero_bandas():
-	pass	
+# def configuracion_numero_bandas():
+# 	pass	
 
 def Hough(imagen, numero_lineas_detectadas):
 	print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
@@ -455,6 +455,100 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 	print('')
 	return vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion
 
+def calcula_banda(image, height, width):
+	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
+	#bandas y los productos con píxeles negros
+	edges, lines = Hough(image, 7) 
+	# print(lines)
+	# print('')
+
+	vector_alturas_unidas = []
+	vector_angulos_unidos = []
+	for i in range(len(lines)):
+		#print(i)
+		vector_alturas_unidas.append(lines[i][0][0])
+		vector_angulos_unidos.append(lines[i][0][1])
+
+	print('rho:', vector_alturas_unidas)
+	print('theta:', vector_angulos_unidos)
+
+	img_copy = pintar_lineas(image, height, width, lines, None, None)	#Para pintar todas las líneas detectadas
+
+	#Saco las dos líneas que delimitan la banda
+	vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 300)
+
+	#Ordenamos alturas para formar máscara
+	tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
+
+	#Formamos "vector_mascara" y creamos la máscara
+	vector_mascara = []
+	# for i in range(len(alturas_ordenadas)):
+	# 	if alturas_ordenadas[i] >
+
+	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2250]
+
+	print('Altura banda zoom:',alturas_ordenadas)
+
+	vector_mascara.append([alturas_ordenadas[0], alturas_ordenadas[1]])
+	mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
+
+	#Aplicamos la máscara
+	target = cv2.bitwise_and(image,image, mask=mascara)
+
+	target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
+
+	#Cálculo gradientes y conversión a valores enteros positivos
+	grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	abs_grad_x = cv2.convertScaleAbs(grad_x)
+
+	grad_y = cv2.Sobel(target_gray, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	abs_grad_y = cv2.convertScaleAbs(grad_y)
+	
+	#Cálculo gradiente absoluto 
+	gradient1 = cv2.subtract(grad_x, grad_y)
+	gradient2 = cv2.convertScaleAbs(gradient1)
+	#print(gradient2.max())
+	#print(gradient2.min())
+
+	#Suavizado: probar cuál funciona mejor (gaussiano)
+	#blurred = cv2.blur(gradient2, (25, 25))
+	blurred = cv2.GaussianBlur(gradient2,(15,15),0)
+	#blurred = cv2.boxFilter(gradient2, -1, (25,25))
+	#blurred = cv2.medianBlur(gradient2,5)
+	#blurred = cv2.bilateralFilter(gradient2,9,75,75)
+
+	#Plot gradientes
+	# plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
+	# plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
+	# plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
+	# plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
+	# plt.title('Resta'), plt.xtic plt.yticks(ks([]),[])		
+	# plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
+	# plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
+	# plt.show()				
+
+	#Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
+	umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)	    #Para gasolinera
+	# umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
+
+	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+	kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 5))   		# (Ancho, alto)
+
+	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
+	closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
+
+	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 75))		# (Ancho, alto) 
+	# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
+	opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
+
+	masked = cv2.bitwise_and(image, image, mask=opened)
+
+	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	print('')
+
+	return target_gray, binaria, closed, opened, masked
+
 def funcion():
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
@@ -474,7 +568,7 @@ def funcion():
 
 		# gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
 
-		filtro_color = 0
+		vector_aprendizaje = []
 
 		numero_bandas = 3
 		numero_lineas_a_detectar = 10
@@ -492,6 +586,7 @@ def funcion():
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		#Busco las bandas horizontales por su color
+		filtro_color = 0
 		if filtro_color == 1:
 			# Aislamos por el color las bandas horizontales
 			# mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
@@ -797,7 +892,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
 
-			plot_lineas = 1
+			plot_lineas = 0
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -839,24 +934,74 @@ def funcion():
 			#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
 			#Leemos de las fotos de cerca con un bucle for y aplicamos "gradientes.py"
 			#Segundo bucle para leer las fotos con zoom de las bandas identificadas
-			mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\2B'
+			print('---------------------------------------------------------- Fase de aprendizaje --------------------------------------------------------------------')
+			mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 			onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
 			onlyfiles2 = natsorted(onlyfiles2)
-			print(onlyfiles2)
+			# print(onlyfiles2)
 			images2 = numpy.empty(len(onlyfiles2), dtype=object)
 			for m in range(0, len(onlyfiles2)):
 				images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
 				images2[m] = cv2.cvtColor(images2[m], cv2.COLOR_BGR2RGB)
 
-				plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
-				plt.title('Foto'), plt.xticks([]), plt.yticks([])
-				plt.show()
-			# all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
-			# if all_zeros == False: 	#Significa que no todo es cero y que por tanto hemos identificado códigos de barras
-			# 	vector_aprendizaje.append([vector_mascara[k][0], vector_mascara[k][1]])	#Añadimos la altura al vector definitivo. Cada valor del
-			#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
-			#Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
-			# print(vector_mascara[1][1])
+				# plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
+				# plt.title('Foto'), plt.xticks([]), plt.yticks([])
+				# plt.show()
+
+				target_gray, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
+
+				print('Vector máscara:', vector_mascara)
+				all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
+				if all_zeros == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
+					print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
+					vector_aprendizaje.append([vector_mascara[m][0], vector_mascara[m][1]])	#Añadimos la altura al vector definitivo. Cada valor del
+																							#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
+				# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
+
+				print('Vector aprendizaje:', vector_aprendizaje)
+
+############################################################################################################################################
+				# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
+				opened_copy = opened.copy()
+				contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+				image_copy = images[n].copy()
+
+				#Obtención del píxel central de los códigos de barras identificados
+				for i in contours:
+					M = cv2.moments(i)
+					if M['m00'] != 0:
+						cx = int(M['m10']/M['m00'])
+						cy = int(M['m01']/M['m00'])
+						cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
+						cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
+				
+				plot_gradientes = 1
+				if plot_gradientes == 1:
+					plt.subplot(231),plt.imshow(images2[n])
+					plt.title('Zoom códigos'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
+					plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
+
+					# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
+					# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
+					plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
+					
+					plt.subplot(234),plt.imshow(closed,cmap = 'gray')
+					plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
+
+					plt.subplot(235),plt.imshow(opened,cmap = 'gray')
+					plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+
+					plt.subplot(236),plt.imshow(masked)
+					plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+					plt.show()	
+############################################################################################################################################
+				
+			print('-------------------------------------------------------------------- Fin fase de aprendizaje --------------------------------------------------------------------')
 
 			
 			

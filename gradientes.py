@@ -13,7 +13,7 @@ from lineas import *
 # from lineas import ordena_alturas
 # from lineas import creacion_mascara
 
-def calcula_banda_central(image, height, width):
+def calcula_banda(image, height, width):
 	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
 	#bandas y los productos con píxeles negros
 	edges, lines = Hough(image, 7) 
@@ -45,7 +45,7 @@ def calcula_banda_central(image, height, width):
 
 	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2250]
 
-	print('alturas_ordenadas filtradas:',alturas_ordenadas)
+	print('Altura banda zoom:',alturas_ordenadas)
 
 	vector_mascara.append([alturas_ordenadas[0], alturas_ordenadas[1]])
 	mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
@@ -115,7 +115,7 @@ def funcion():
 
 		height, width, channels = images[n].shape 
 
-		target_gray, binaria, closed, opened, masked = calcula_banda_central(images[n], height, width)
+		target_gray, binaria, closed, opened, masked = calcula_banda(images[n], height, width)
 		
 		"""
 		cv2.imshow('original', img)
