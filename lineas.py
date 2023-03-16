@@ -148,8 +148,8 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas):
 			# indice_pareja = indice_pareja + 1
 			i = i + 2
 			print('Líneas emparejadas:', [altura1, altura2])
-			print(vector_mascara)
-			print('')
+			print(vector_mascara)								#Incrementamos el índice de las líneas desechadas solo cuando formamos 
+			print('')											#pareja, ya altura3-altura1 o altura2-altura1
 		else:
 			vector_desechadas.append(altura1)
 			vector_indices.append(indice_pareja)
@@ -318,14 +318,16 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupaci
 		if (vector_desechadas[i] > aux1[indice] + 3 * ancho or vector_indices[i] == 0) and numero_de_parejas < numero_bandas and relleno == 1: 
 			if vector_desechadas[i] - ancho < 0:	
 				vector_mascara.insert(vector_indices[i], [0, vector_desechadas[i] + ancho])	#Relleno hacia ambos lados
+				print('Línea rellenada hacia ambos lados:', [0, vector_desechadas[i] + ancho])
 			elif vector_desechadas[i] + ancho > 3000:
 				vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, 3000])	#Relleno hacia ambos lados
+				print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, 3000])
 			else:
 				vector_mascara.insert(vector_indices[i], [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])	#Relleno hacia ambos lados
+				print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
 			vector_limites_inferiores.insert(vector_indices[i], vector_desechadas[i] + ancho)
 			vector_ocupacion[j] = 1
-			numero_de_parejas = numero_de_parejas + 1
-			print('Línea rellenada hacia ambos lados:', [vector_desechadas[i] - ancho, vector_desechadas[i] + ancho])
+			numero_de_parejas = numero_de_parejas + 1			
 			print('Vector máscara tras añadir la línea:', vector_mascara)
 			print('Vector límites inferiores tras añadir la línea:', vector_limites_inferiores)
 			print('Vector ocupación:', vector_ocupacion)
