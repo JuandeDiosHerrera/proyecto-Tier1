@@ -968,6 +968,30 @@ def funcion():
 			onlyfiles2 = natsorted(onlyfiles2)
 			# print(onlyfiles2)
 			images2 = numpy.empty(len(onlyfiles2), dtype=object)
+
+
+			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
+
+			vector_imagen1 = [False, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+
+			for m in range(0, len(vector_imagen1)):
+				if vector_imagen1[m] == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
+					print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
+					if (vector_aprendizaje[0][1] == 0 and m  == 0) or (vector_aprendizaje[1][1] == 0 and m  == 1) or (vector_aprendizaje[2][1] == 0 and m  == 2):
+						vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
+
+					elif vector_aprendizaje[m][0] < vector_mascara[m][0]:	#Si hemos conseguido leer código de una banda con el límite superior
+						vector_aprendizaje[m][0] = vector_mascara[m][0]		#más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
+
+					elif vector_aprendizaje[m][1] > vector_mascara[m][1]:	#Si hemos conseguido leer código de una banda con el límite inferior
+						vector_aprendizaje[m][1] = vector_mascara[m][1]		#más hacia arriba, es porque la banda la podemos estrechar más y seguir leyendo
+
+				else:
+					print('Código/s de barras no identificado/s en imagen')
+				# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
+
+				print('Vector aprendizaje:', vector_aprendizaje)
+
 			"""
 			for m in range(0, len(onlyfiles2)):
 				images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
