@@ -112,7 +112,7 @@ def ordena_alturas(vector_alturas, vector_angulos):
 	print('')
 	return tam_vector, alturas_ordenadas, angulos_ordenados
 
-def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas):
+def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje):
 	print('-------------------------------------------------------------------- Emparejamiento de líneas --------------------------------------------------------------------')
 	vector_mascara = []			 #Vector de parejas de alturas
 	alturas = []				 #Vector de alturas definitivas ordenadas
@@ -130,6 +130,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas):
 		else:
 			print('Alturas:', altura1, '-', altura2)
 
+		#Primera imagen sin usar "vector_aprendizaje"
 		if altura3 - altura1 <= 400 and altura3 - altura1 >= 150:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
 			vector_mascara.append([altura1, altura3])
 			alturas.append(altura1)						
@@ -766,7 +767,34 @@ def calcula_banda(image, height, width):
 
 	return target_gray, binaria, closed, opened, masked
 
+def fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje):
+	print('---------------------------------------------------------- Emparejamiento usando vector aprendizaje --------------------------------------------------------------------')
+	vector_mascara = [[0,0], [0,0], [0,0]]	
+	vector_limites_inferiores = []
+
+	print('Vector aprendizaje:', vector_aprendizaje)
+	print('')
+	for i in range(len(vector_aprendizaje)):		#Bucle para recorrer el vector aprendizaje
+		print('Elemento vector aprendizaje:', vector_aprendizaje[i])
+		for j in range(len(alturas_ordenadas)):		#Bucle para recorrer el vector de alturas. Así comparo cada altura con cada elemento del "vector_aprendizaje"
+			print('Elemento vector alturas:', alturas_ordenadas[j])
+			if abs(alturas_ordenadas[j] - vector_aprendizaje[i][0]) < 20:	
+				vector_mascara[i][0] = alturas_ordenadas[j]
+				print('Añadido a vector_mascara:', vector_mascara[i])
+			elif abs(alturas_ordenadas[j] - vector_aprendizaje[i][1]) < 20:
+				vector_mascara[i][1] = alturas_ordenadas[j]
+				vector_limites_inferiores.append(vector_mascara[i][1])
+				print('Añadido a vector_mascara:', vector_mascara[i])
+			print('')
+
+	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	print('')
+
+	return vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas
+
 def funcion():
+	vector_aprendizaje = [[0,0], [0,0], [0,0]]	
+	primera_iter = 1
 	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\3B'
@@ -789,8 +817,6 @@ def funcion():
 
 		numero_bandas = 3
 		numero_lineas_a_detectar = 10
-
-		vector_aprendizaje = [[0,0], [0,0], [0,0]]	
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba --- Proximidad para eliminar banda ---
@@ -863,9 +889,13 @@ def funcion():
 			#Obtenemos el número de líneas a emparejar y ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
 			tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
 
-			#Emparejamos las líneas detectadas
-			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas)
-								
+			#Emparejamos las líneas detectadas			
+			if primera_iter == 1:
+				vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+				primera_iter = 0
+			else:
+				vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+			
 			# Ancho de las bandas ya detectadas
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
 			if ancho == 0:
