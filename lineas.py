@@ -212,6 +212,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 	return vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas
 
 def ancho_bandas(numero_de_parejas, vector_mascara):
+	print('-------------------------------------------------------------------- Cálculo ancho bandas --------------------------------------------------------------------')
 	vector_anchos = []
 	ancho = 0
 	if numero_de_parejas != 0:
@@ -771,6 +772,7 @@ def fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vecto
 	print('---------------------------------------------------------- Emparejamiento usando vector aprendizaje --------------------------------------------------------------------')
 	vector_mascara = [[0,0], [0,0], [0,0]]	
 	vector_limites_inferiores = []
+	alturas_vector_mascara = []
 
 	print('Vector aprendizaje:', vector_aprendizaje)
 	print('')
@@ -778,19 +780,27 @@ def fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vecto
 		print('Elemento vector aprendizaje:', vector_aprendizaje[i])
 		for j in range(len(alturas_ordenadas)):		#Bucle para recorrer el vector de alturas. Así comparo cada altura con cada elemento del "vector_aprendizaje"
 			print('Elemento vector alturas:', alturas_ordenadas[j])
-			if abs(alturas_ordenadas[j] - vector_aprendizaje[i][0]) < 20:	
+			if abs(alturas_ordenadas[j] - vector_aprendizaje[i][0]) < 50:	
+				alturas_vector_mascara.append(alturas_ordenadas[j])
 				vector_mascara[i][0] = alturas_ordenadas[j]
-				print('Añadido a vector_mascara:', vector_mascara[i])
-			elif abs(alturas_ordenadas[j] - vector_aprendizaje[i][1]) < 20:
+				print('Añadido a vector mascara:', vector_mascara)
+			elif abs(alturas_ordenadas[j] - vector_aprendizaje[i][1]) < 50:
+				alturas_vector_mascara.append(alturas_ordenadas[j])
 				vector_mascara[i][1] = alturas_ordenadas[j]
 				vector_limites_inferiores.append(vector_mascara[i][1])
-				print('Añadido a vector_mascara:', vector_mascara[i])
-			print('')
+				print('Añadido a vector mascara:', vector_mascara)
+		print('')
 
-	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	vector_lineas_sobrantes = [x for x in alturas_ordenadas if x not in alturas_vector_mascara]
+
+	print('Alturas ordenadas:', alturas_ordenadas)
+	print('Alturas vector máscara:', alturas_vector_mascara)
+	print('Vector máscara:', vector_mascara)
+	print('Vector límites inferiores:', vector_limites_inferiores)
+	print('Vector líneas sobrantes', vector_lineas_sobrantes)		
 	print('')
 
-	return vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas
+	return vector_mascara, vector_limites_inferiores, vector_lineas_sobrantes
 
 def funcion():
 	vector_aprendizaje = [[0,0], [0,0], [0,0]]	
@@ -894,7 +904,7 @@ def funcion():
 				vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
 				primera_iter = 0
 			else:
-				vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+				vector_mascara, vector_limites_inferiores, vector_lineas_sobrantes = fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
 			
 			# Ancho de las bandas ya detectadas
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
