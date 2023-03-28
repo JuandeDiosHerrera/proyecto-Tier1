@@ -353,14 +353,23 @@ def relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupaci
 	print('')
 	return vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas
 
-def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas):
+def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores):
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
+	#Relleno "vector_mascara" con [0, 0] en las posiciones donde "vector_ocupacion" es cero
+	if len(vector_mascara) != len(vector_ocupacion):
+		for i in range(len(vector_ocupacion)):
+			if vector_ocupacion[i] == 0:
+				vector_mascara.insert(i, [0, 0])
+				print('Añadido [0, 0] en la posición', i, 'del vector máscara')
+	print('Vector máscara tras relleno con ceros:', vector_mascara)
+	print('')
+	
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
 		
 	#Saco la separación que hay entre dos bandas consecutivas
 	i = 0				
-	vector_separaciones = []
+	separacion = 0
 
 ################### MIRAR CÓMO ARREGLAR CUANDO "VECTOR_MASCARA" TIENE MENOR LONGITUD QUE "VECTOR_OCUPACION" (LÍNEA "ALTURA2_MEDIA"") ########################################
 
@@ -370,18 +379,20 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 		# 	altura2_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
 		# 	vector_separaciones.append(altura2_media - altura1_media)
 		# 	i = i + 2
-		if vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1:
+		if vector_ocupacion[i] == 1 and vector_ocupacion[i+1] == 1:											#Dos bandas consecutivas
 			altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
 			altura2_media = int((vector_mascara[i+1][0] + vector_mascara[i+1][1]) / 2)
-			vector_separaciones.append(altura2_media - altura1_media)	
+			separacion = altura2_media - altura1_media
+			break
 			# i = i + 1	
-		elif i < len(vector_ocupacion) - 2 and vector_ocupacion[i] == 1 and vector_ocupacion[i+2] == 1:
+		elif i < len(vector_ocupacion) - 2 and vector_ocupacion[i] == 1 and vector_ocupacion[i+2] == 1:		#Banda, hueco, banda
 			altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
 			altura2_media = int((vector_mascara[i+2][0] + vector_mascara[i+2][1]) / 2)
-			vector_separaciones.append(int((altura2_media - altura1_media) / 2))
+			separacion = int((altura2_media - altura1_media) / 2)
+			break
 		i = i + 1		
 
-	if len(vector_separaciones) == 0:
+	if separacion == 0:
 		print('No hay dos bandas consecutivas para obtener la separación entre ellas')	
 		
 ######################################## MIRAR EL CASO EN QUE NO HAY BANDAS CONSECUTIVAS (EL ELSE) ###############################################
@@ -389,20 +400,20 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 	print('Vector máscara:', vector_mascara)
 	print('Separación teórica:', separacion_teorica)
 	print('Vector ocupación:', vector_ocupacion)
-	print('')
 
-	print('Vector separaciones:', vector_separaciones)
-	separacion = int(sum(vector_separaciones)/len(vector_separaciones))
-	print('Separación media entre bandas:', separacion)
+	# print('Vector separaciones:', vector_separaciones)
+	# separacion = int(sum(vector_separaciones)/len(vector_separaciones))
+	print('Separación entre bandas:', separacion)
 	print('')
 						
 	for i in range(len(vector_ocupacion)):	#Miro si la banda de arriba o de abajo de la vacía está ocupada para usarla como referencia
 		print('Índice vector ocupación:', i)
 		if vector_ocupacion[i] == 0: 
-			if vector_ocupacion[i-1] == 1 and i > 0 and numero_de_parejas < numero_bandas:
+			if i > 0 and vector_ocupacion[i-1] == 1:	# and numero_de_parejas < numero_bandas
 				# print('i-1')
+				vector_mascara.pop(i)
 				print('Pareja usada:', [vector_mascara[i-1][0], vector_mascara[i-1][1]])
-				vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion-20, vector_mascara[i-1][1]+separacion+20])
+				vector_mascara.insert(i, [vector_mascara[i-1][0]+separacion-50, vector_mascara[i-1][1]+separacion+50])
 				print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
 				vector_limites_inferiores.insert(i, vector_mascara[i][1])
 				print('Añadido límite inferior:', vector_limites_inferiores)
@@ -411,10 +422,11 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 				vector_ocupacion[i] = 1
 				print('Vector ocupación:', vector_ocupacion)
 
-			elif vector_ocupacion[i+1] == 1 and i < len(vector_ocupacion) - 1 and numero_de_parejas < numero_bandas:
+			elif i < len(vector_ocupacion) - 1 and vector_ocupacion[i+1] == 1:	# and numero_de_parejas < numero_bandas
 				# print('i+1')
+				vector_mascara.pop(i)
 				print('Pareja usada:', [vector_mascara[i+1][0], vector_mascara[i+1][1]])
-				vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion-20, vector_mascara[i+1][1]-separacion+20])
+				vector_mascara.insert(i, [vector_mascara[i+1][0]-separacion-30, vector_mascara[i+1][1]-separacion+30])
 				print('Añadida banda artificial:', [vector_mascara[i][0], vector_mascara[i][1]])
 				vector_limites_inferiores.insert(i, vector_mascara[i][1])
 				print('Añadido límite inferior:', vector_limites_inferiores)
@@ -948,25 +960,22 @@ def funcion():
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
 			if ancho == 0:
 				ancho = 350
+	
+			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
+			vector_mascara, vector_ocupacion = completar_bandas_aprendizaje(vector_mascara, ancho, height, numero_bandas, numero_de_parejas)
 
 			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
 			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
-			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
-			vector_mascara, vector_ocupacion = completar_bandas_aprendizaje(vector_mascara, ancho, height, numero_bandas, numero_de_parejas)
-
-			# plt.subplot(111),plt.imshow(img_copy2)	#Pinto las líneas definitivas
-			# plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-			# plt.show()
-
+			imagen_aprendizaje = cv2.bitwise_and(images[n],images[n], mask=mascara) 
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
-			if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
-				vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
+			# if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
+			# 	vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
 
 			#En caso de que falten bandas por detectar, las creo artificialmente
-			if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
+			# if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
 			
 			#Copia del vector actual para comparar cuando eliminemos alguna pareja
 			vector_mascara_copia = vector_mascara
@@ -976,6 +985,22 @@ def funcion():
 
 			#Resultado con rellenos y bandas artificiales
 			target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
+
+			plt.subplot(321),plt.imshow(images[n])	#Pinto las líneas definitivas
+			plt.title('Original image'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Pinto las líneas definitivas
+			plt.title('Learning phase'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Pinto las líneas definitivas
+			plt.title('Result 1'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Pinto las líneas definitivas
+			plt.title('Máscara con bandas artificiales'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(325),plt.imshow(target1)	#Pinto las líneas definitivas
+			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
+			plt.show()
 
 			#Comprobamos que las bandas formadas no estén en zona de productos, si es así, eliminamos esa pareja y formamos la máscara con las parejas eliminadas
 			
@@ -1043,6 +1068,7 @@ def funcion():
 			#Leemos de las fotos de cerca con un bucle for y aplicamos "gradientes.py"
 			#Segundo bucle para leer las fotos con zoom de las bandas identificadas
 			print('----------------------------------------------------------------- Fase de aprendizaje --------------------------------------------------------------------')
+			print('Vector aprendizaje actual:', vector_aprendizaje)
 			mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 			onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
 			onlyfiles2 = natsorted(onlyfiles2)
@@ -1053,6 +1079,10 @@ def funcion():
 			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
 
 			vector_imagen1 = [False, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [False, True, True]
+			vector_imagen3 = [False, True, True]
+
+			vector_imagenes = [vector_imagen1, vector_imagen2, vector_imagen3]
 
 			for m in range(0, len(vector_imagen1)):
 				if vector_imagen1[m] == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
@@ -1070,7 +1100,7 @@ def funcion():
 					print('Código/s de barras no identificado/s en imagen')
 				# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
 
-				print('Vector aprendizaje:', vector_aprendizaje)
+				print('Vector aprendizaje modificado:', vector_aprendizaje)
 
 			"""
 			for m in range(0, len(onlyfiles2)):
