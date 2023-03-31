@@ -1095,10 +1095,25 @@ def funcion():
 
 
 			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
-
+			#Secuencia 1
 			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
 			vector_imagen2 = [True, False, True]
-			vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
+			vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código	
+
+			# #Secuencia 2
+			# vector_imagen1 = [False, True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [False, True, False]
+			# vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
+
+			# #Secuencia 3
+			# vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [False, True, False]
+			# vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
+
+			#Secuencia 4
+			# vector_imagen1 = [False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [False, True, True]
+			# vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
 
 			vector_imagenes = [vector_imagen1, vector_imagen2, vector_imagen3]
 
