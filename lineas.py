@@ -498,6 +498,9 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 
 def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar):
 	edges, lines = Hough(image, 50)
+	plot_franjas = 0
+	plot_edges = 0
+
 	if numero_bandas == 2:
 		cuarto1 = numpy.zeros((height, width),numpy.uint8)			
 		cuarto1[0 : int(height/2), :] = 1
@@ -508,7 +511,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 		image1 = cv2.bitwise_and(image, image, mask=cuarto1)
 		image2 = cv2.bitwise_and(image, image, mask=cuarto2)
 
-		plot_franjas = 0
 		if plot_franjas == 1:
 			plt.subplot(221),plt.imshow(image,cmap = 'gray')
 			plt.title('Edges'), plt.xticks([]), plt.yticks([])
@@ -536,7 +538,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 			vector_alturas_unidas.append(i[0][0])
 			vector_angulos_unidos.append(i[0][1])
 		
-		plot_edges = 0
 		if plot_edges == 1:
 			plt.subplot(221),plt.imshow(img_copy11)
 			plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
@@ -558,7 +559,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 		image2 = cv2.bitwise_and(image, image, mask=cuarto2)
 		image3 = cv2.bitwise_and(image, image, mask=cuarto3)
 
-		plot_franjas = 0
 		if plot_franjas == 1:
 			plt.subplot(221),plt.imshow(image,cmap = 'gray')
 			plt.title('Edges'), plt.xticks([]), plt.yticks([])
@@ -595,7 +595,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 			vector_alturas_unidas.append(i[0][0])
 			vector_angulos_unidos.append(i[0][1])
 		
-		plot_edges = 0
 		if plot_edges == 1:
 			plt.subplot(221),plt.imshow(img_copy11)
 			plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
@@ -624,7 +623,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 		image3 = cv2.bitwise_and(image, image, mask=cuarto3)
 		image4 = cv2.bitwise_and(image, image, mask=cuarto4)
 
-		plot_franjas = 0
 		if plot_franjas == 1:
 			plt.subplot(231),plt.imshow(image,cmap = 'gray')
 			plt.title('Edges'), plt.xticks([]), plt.yticks([])
@@ -670,7 +668,6 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 			vector_alturas_unidas.append(i[0][0])
 			vector_angulos_unidos.append(i[0][1])
 		
-		plot_edges = 0
 		if plot_edges == 1:
 			plt.subplot(221),plt.imshow(img_copy11)
 			plt.title('Cuarto 1'), plt.xticks([]), plt.yticks([])
@@ -781,7 +778,7 @@ def calcula_banda(image, height, width):
 
 	return target_gray, binaria, closed, opened, masked
 
-def fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje):
+def fase_aprendizaje(alturas_ordenadas, height, numero_bandas, vector_aprendizaje):
 	print('---------------------------------------------------------- Emparejamiento usando vector aprendizaje --------------------------------------------------------------------')
 	
 	
@@ -877,7 +874,7 @@ def funcion():
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\3B'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia2'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
 	images = numpy.empty(len(onlyfiles), dtype=object)
@@ -967,12 +964,34 @@ def funcion():
 			tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
 
 			#Emparejamos las líneas detectadas			
-			if primera_iter == 1:
-				vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
-				primera_iter = 0
-			else:
-				vector_mascara, alturas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, numero_de_parejas = fase_aprendizaje(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
 			
+
+
+
+
+
+
+
+
+
+			#Mirar si va mejor después de emparejar eliminar bandas cercana
+			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
+			
+
+
+
+
+
+
+
+
+
+			#A partir de la segunda imagen usando ya "vector_aprendizaje"
+			if primera_iter == 0:
+				vector_mascara, alturas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, numero_de_parejas = fase_aprendizaje(alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+			primera_iter = 0
+
 			# Ancho de las bandas ya detectadas
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
 			if ancho == 0:
@@ -1043,7 +1062,7 @@ def funcion():
 			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
 			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
 
-			plot_lineas = 0
+			plot_lineas = 1
 			if plot_lineas == 1:
 				plt.subplot(221),plt.imshow(images[n])
 				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
@@ -1096,14 +1115,14 @@ def funcion():
 
 			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
 			#Secuencia 1
-			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			vector_imagen2 = [True, False, True]
-			vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código	
+			# vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [True, False, True]
+			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código	
 
 			# #Secuencia 2
-			# vector_imagen1 = [False, True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			# vector_imagen2 = [False, True, False]
-			# vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
+			vector_imagen1 = [False, True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [False, True, False]
+			vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
 
 			# #Secuencia 3
 			# vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
