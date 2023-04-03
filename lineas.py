@@ -197,13 +197,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 			if altura_de_abajo <= factor:
 				vector_ocupacion[indice_pareja - 1] = 1
 				ubicado = 1
-			indice_pareja = indice_pareja + 1
-
-	#Relleno con [0, 0]s "vector_mascara" para que tenga el mismo tamaño que "vector_ocupacion"
-	#Relleno "vector_mascara" con [0, 0] en las posiciones donde "vector_ocupacion" es cero
-	for i in range(numero_bandas):
-		if vector_ocupacion[i] == 0:
-			vector_mascara.insert(i, [0, 0]) 
+			indice_pareja = indice_pareja + 1	
 
 	print('Vector máscara:', vector_mascara)
 	print('Vector alturas:', alturas)
@@ -365,6 +359,13 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
+
+	#Relleno con [0, 0]s "vector_mascara" para que tenga el mismo tamaño que "vector_ocupacion"
+	#Relleno "vector_mascara" con [0, 0] en las posiciones donde "vector_ocupacion" es cero
+	if len(vector_mascara) < numero_bandas:
+		for i in range(numero_bandas):
+			if vector_ocupacion[i] == 0:
+				vector_mascara.insert(i, [0, 0]) 
 		
 	#Saco la separación que hay entre dos bandas consecutivas
 	i = 0				
@@ -874,7 +875,7 @@ def funcion():
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\3B'
 	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia2'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
 	images = numpy.empty(len(onlyfiles), dtype=object)
@@ -966,21 +967,8 @@ def funcion():
 			#Emparejamos las líneas detectadas			
 			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
 			
-
-
-
-
-
-
-
-
-
 			#Mirar si va mejor después de emparejar eliminar bandas cercana
 			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
-			
-
-
-
 
 
 
@@ -992,13 +980,28 @@ def funcion():
 				vector_mascara, alturas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, numero_de_parejas = fase_aprendizaje(alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
 			primera_iter = 0
 
-			# Ancho de las bandas ya detectadas
+
+
+
+
+
+			#Ancho de las bandas ya detectadas
 			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
 			if ancho == 0:
 				ancho = 350
+
+
+
+
+
 	
 			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
-			vector_mascara, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, ancho, height, numero_bandas, numero_de_parejas)
+			# vector_mascara, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, ancho, height, numero_bandas, numero_de_parejas)
+			
+			
+			
+			
+			
 			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
 			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
@@ -1006,11 +1009,13 @@ def funcion():
 
 			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
 			# if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
-			# 	vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
+			if len(vector_mascara) < numero_bandas:	
+				vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
 
 			#En caso de que falten bandas por detectar, las creo artificialmente
 			# if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
-			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
+			if len(vector_mascara) < numero_bandas:
+				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
 
 			#Copia del vector actual para comparar cuando eliminemos alguna pareja
 			vector_mascara_copia = vector_mascara
@@ -1115,14 +1120,14 @@ def funcion():
 
 			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
 			#Secuencia 1
-			# vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			# vector_imagen2 = [True, False, True]
-			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código	
+			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [True, False, True]
+			vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código	
 
 			# #Secuencia 2
-			vector_imagen1 = [False, True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			vector_imagen2 = [False, True, False]
-			vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
+			# vector_imagen1 = [False, True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [False, True, False]
+			# vector_imagen3 = [False, True, False]		#True: lee código - False: no lee código
 
 			# #Secuencia 3
 			# vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
