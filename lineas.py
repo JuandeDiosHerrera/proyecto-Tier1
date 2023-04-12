@@ -1025,14 +1025,13 @@ def funcion():
 			if ancho == 0:
 				ancho = 350
 
-			if primera_iter == 1:
-				if len(vector_mascara) != len(vector_ocupacion):
-					for i in range(len(vector_ocupacion)):
-						if vector_ocupacion[i] == 0:
-							vector_mascara.insert(i, [0, 0])
-							print('Añadido [0, 0] en la posición', i, 'del vector máscara')
-				print('Vector máscara tras relleno con ceros:', vector_mascara)
-				print('')
+			if primera_iter == 1 and len(vector_mascara) != len(vector_ocupacion):
+				for i in range(len(vector_ocupacion)):
+					if vector_ocupacion[i] == 0:
+						vector_mascara.insert(i, [0, 0])
+						print('Añadido [0, 0] en la posición', i, 'del vector máscara')
+			print('Vector máscara tras relleno con ceros:', vector_mascara)
+			print('')
 	
 			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
 			vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, ancho, height, numero_bandas, numero_de_parejas)
