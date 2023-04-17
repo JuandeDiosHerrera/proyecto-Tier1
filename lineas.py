@@ -8,6 +8,8 @@ import math
 import numpy
 from natsort import natsorted
 
+bardet = cv2.barcode_BarcodeDetector()
+
 # def configuracion_numero_bandas():
 # 	pass	
 
@@ -699,6 +701,9 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 def calcula_banda(image, height, width):
 	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
 	#bandas y los productos con píxeles negros
+	plot_banda = 0
+	plot_gradientes = 0
+	plot_morfologia = 0
 	edges, lines = Hough(image, 7) 
 	# print(lines)
 	# print('')
@@ -735,8 +740,19 @@ def calcula_banda(image, height, width):
 
 	#Aplicamos la máscara
 	target = cv2.bitwise_and(image,image, mask=mascara)
-
 	target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
+
+	if plot_banda == 1:
+		plt.subplot(221),plt.imshow(image)
+		plt.title('Zoom Image'), plt.xticks([]), plt.yticks([])
+		plt.subplot(222),plt.imshow(target)
+		plt.title('Banda identificada'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(223),plt.imshow(target_gray, cmap = 'gray')
+		plt.title('Banda grayscale'), plt.xticks([]), plt.yticks([])	
+		plt.show()	
+
+	# #Usamos la librería de openCV para decodificar los códigos de barras
+	# ok, decoded_info, decoded_type, corners = bardet.detectAndDecode(target)
 
 	#Cálculo gradientes y conversión a valores enteros positivos
 	grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
@@ -758,16 +774,16 @@ def calcula_banda(image, height, width):
 	#blurred = cv2.medianBlur(gradient2,5)
 	#blurred = cv2.bilateralFilter(gradient2,9,75,75)
 
-	#Plot gradientes
-	# plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
-	# plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
-	# plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
-	# plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
-	# plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
-	# plt.title('Resta'), plt.xtic plt.yticks(ks([]),[])		
-	# plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
-	# plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
-	# plt.show()				
+	if plot_gradientes == 1:
+		plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
+		plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
+		plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
+		plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
+		plt.title('Resta'), plt.xticks([]), plt.yticks([])	
+		plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
+		plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
+		plt.show()				
 
 	#Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
 	umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)	    #Para gasolinera
@@ -785,10 +801,23 @@ def calcula_banda(image, height, width):
 
 	masked = cv2.bitwise_and(image, image, mask=opened)
 
+	if plot_morfologia == 1:
+		plt.subplot(231),plt.imshow(blurred,cmap = 'gray')
+		plt.title('Suavizado gaussiano'), plt.xticks([]), plt.yticks([])
+		plt.subplot(232),plt.imshow(binaria,cmap = 'gray')
+		plt.title('Binaria'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(233),plt.imshow(closed,cmap = 'gray')
+		plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
+		plt.subplot(234),plt.imshow(opened,cmap = 'gray')
+		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+		plt.subplot(235),plt.imshow(masked)
+		plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+		plt.show()				
+
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
 
-	return target_gray, binaria, closed, opened, masked
+	return target, target_gray, blurred, binaria, closed, opened, masked
 
 def fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, numero_bandas):
 	print('---------------------------------------------------------- Emparejamiento usando vector aprendizaje --------------------------------------------------------------------')
@@ -1194,7 +1223,7 @@ def funcion():
 				# plt.title('Foto'), plt.xticks([]), plt.yticks([])
 				# plt.show()	
 
-				target_gray, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
+				target, target_gray, blurred, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
 
 				print('Vector máscara:', vector_mascara)
 				all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
