@@ -701,9 +701,9 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 def calcula_banda(image, height, width):
 	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
 	#bandas y los productos con píxeles negros
-	plot_banda = 0
+	plot_banda = 1
 	plot_gradientes = 0
-	plot_morfologia = 0
+	plot_morfologia = 0	
 	edges, lines = Hough(image, 7) 
 	# print(lines)
 	# print('')
@@ -739,19 +739,39 @@ def calcula_banda(image, height, width):
 	mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
 	#Aplicamos la máscara
-	target = cv2.bitwise_and(image,image, mask=mascara)
+	target = cv2.bitwise_and(image,image, mask=mascara)	
 	target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
 
+	#Filtro para quitar reflejos de los códigos de barras
+	red = numpy.array(image[:,:,0]) 
+	green = numpy.array(image[:,:,1])			 
+	blue = numpy.array(image[:,:,2])
+	
+	mascara_red = red > 225
+	mascara_green = green > 225 
+	mascara_blue = blue > 225
+	mascara_reflejo = mascara_red & mascara_green & mascara_blue	
+	kernel_reflejo = numpy.zeros((height, width),numpy.uint8)
+
+	kernel_reflejo[mascara_reflejo == True] = 255
+
+	# print(kernel_reflejo)
+	sin_reflejo = cv2.inpaint(target, kernel_reflejo, 30, cv2.INPAINT_TELEA)
+
 	if plot_banda == 1:
-		plt.subplot(221),plt.imshow(image)
+		plt.subplot(231),plt.imshow(image)
 		plt.title('Zoom Image'), plt.xticks([]), plt.yticks([])
-		plt.subplot(222),plt.imshow(target)
+		plt.subplot(232),plt.imshow(target)
 		plt.title('Banda identificada'), plt.xticks([]), plt.yticks([])		
-		plt.subplot(223),plt.imshow(target_gray, cmap = 'gray')
+		plt.subplot(233),plt.imshow(target_gray, cmap = 'gray')
 		plt.title('Banda grayscale'), plt.xticks([]), plt.yticks([])	
+		plt.subplot(234),plt.imshow(kernel_reflejo, cmap = 'gray')
+		plt.title('Zona reflejos'), plt.xticks([]), plt.yticks([])
+		plt.subplot(235),plt.imshow(sin_reflejo)
+		plt.title('Banda sin reflejos'), plt.xticks([]), plt.yticks([])		
 		plt.show()	
 
-	# #Usamos la librería de openCV para decodificar los códigos de barras
+	# Usamos la librería de openCV para decodificar los códigos de barras
 	# ok, decoded_info, decoded_type, corners = bardet.detectAndDecode(target)
 
 	#Cálculo gradientes y conversión a valores enteros positivos
@@ -801,6 +821,11 @@ def calcula_banda(image, height, width):
 
 	masked = cv2.bitwise_and(image, image, mask=opened)
 
+	kernel3 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
+	dilated = cv2.dilate(opened, kernel3)
+
+	masked2 = cv2.bitwise_and(image, image, mask=dilated)
+
 	if plot_morfologia == 1:
 		plt.subplot(231),plt.imshow(blurred,cmap = 'gray')
 		plt.title('Suavizado gaussiano'), plt.xticks([]), plt.yticks([])
@@ -810,7 +835,9 @@ def calcula_banda(image, height, width):
 		plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
 		plt.subplot(234),plt.imshow(opened,cmap = 'gray')
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-		plt.subplot(235),plt.imshow(masked)
+		plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
+		plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+		plt.subplot(236),plt.imshow(masked2)
 		plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 		plt.show()				
 

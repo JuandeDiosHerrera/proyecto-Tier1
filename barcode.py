@@ -16,14 +16,12 @@ for n in range(0, len(onlyfiles)):
 	images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 	height, width, channels = images[n].shape 
 
-
 	target, target_gray, blurred, binaria, closed, opened, masked = calcula_banda(images[n], height, width)
 
 	kernel3 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
 	dilated = cv2.dilate(opened, kernel3)
 
 	masked2 = cv2.bitwise_and(images[n], images[n], mask=dilated)
-
 
 	ok, decoded_info, decoded_type, corners = bardet.detectAndDecode(masked2)		
 	
@@ -46,22 +44,19 @@ for n in range(0, len(onlyfiles)):
 	# plt.title('Banda grayscale'), plt.xticks([]), plt.yticks([])	
 	# plt.show()	
 
-	plt.subplot(231),plt.imshow(blurred,cmap = 'gray')
-	plt.title('Suavizado gaussiano'), plt.xticks([]), plt.yticks([])
-	plt.subplot(232),plt.imshow(binaria,cmap = 'gray')
-	plt.title('Binaria'), plt.xticks([]), plt.yticks([])		
-	plt.subplot(233),plt.imshow(closed,cmap = 'gray')
-	plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
-	plt.subplot(234),plt.imshow(opened,cmap = 'gray')
-	plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-	plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
-	plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
-	plt.subplot(236),plt.imshow(masked2)
-	plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
-	plt.show()	
-
-
-
+	# plt.subplot(231),plt.imshow(blurred,cmap = 'gray')
+	# plt.title('Suavizado gaussiano'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(232),plt.imshow(binaria,cmap = 'gray')
+	# plt.title('Binaria'), plt.xticks([]), plt.yticks([])		
+	# plt.subplot(233),plt.imshow(closed,cmap = 'gray')
+	# plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
+	# plt.subplot(234),plt.imshow(opened,cmap = 'gray')
+	# plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
+	# plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(236),plt.imshow(masked2)
+	# plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+	# plt.show()	
 	
 	lista_anchos = []
 	lista_alturas = []  
