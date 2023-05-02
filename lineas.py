@@ -701,9 +701,9 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 def calcula_banda(image, height, width):
 	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
 	#bandas y los productos con píxeles negros
-	plot_banda = 1
+	plot_banda = 0
 	plot_gradientes = 0
-	plot_morfologia = 0	
+	plot_morfologia = 1
 	edges, lines = Hough(image, 7) 
 	# print(lines)
 	# print('')
@@ -734,6 +734,7 @@ def calcula_banda(image, height, width):
 	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2250]
 
 	print('Altura banda zoom:',alturas_ordenadas)
+	print('')
 
 	vector_mascara.append([alturas_ordenadas[0], alturas_ordenadas[1]])
 	mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
@@ -755,8 +756,9 @@ def calcula_banda(image, height, width):
 
 	kernel_reflejo[mascara_reflejo == True] = 255
 
+	sin_reflejo = kernel_reflejo
 	# print(kernel_reflejo)
-	sin_reflejo = cv2.inpaint(target, kernel_reflejo, 30, cv2.INPAINT_TELEA)
+	# sin_reflejo = cv2.inpaint(target, kernel_reflejo, 30, cv2.INPAINT_TELEA)
 
 	if plot_banda == 1:
 		plt.subplot(231),plt.imshow(image)
@@ -774,11 +776,18 @@ def calcula_banda(image, height, width):
 	# Usamos la librería de openCV para decodificar los códigos de barras
 	# ok, decoded_info, decoded_type, corners = bardet.detectAndDecode(target)
 
+	#Suavizado: probar cuál funciona mejor (gaussiano)
+	#blurred = cv2.blur(gradient2, (25, 25))
+	blurred = cv2.GaussianBlur(target_gray,(15,15),0)
+	#blurred = cv2.boxFilter(gradient2, -1, (25,25))
+	#blurred = cv2.medianBlur(gradient2,5)
+	#blurred = cv2.bilateralFilter(gradient2,9,75,75)
+
 	#Cálculo gradientes y conversión a valores enteros positivos
-	grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	grad_x = cv2.Sobel(blurred, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 	abs_grad_x = cv2.convertScaleAbs(grad_x)
 
-	grad_y = cv2.Sobel(target_gray, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	grad_y = cv2.Sobel(blurred, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 	abs_grad_y = cv2.convertScaleAbs(grad_y)
 	
 	#Cálculo gradiente absoluto 
@@ -786,13 +795,6 @@ def calcula_banda(image, height, width):
 	gradient2 = cv2.convertScaleAbs(gradient1)
 	#print(gradient2.max())
 	#print(gradient2.min())
-
-	#Suavizado: probar cuál funciona mejor (gaussiano)
-	#blurred = cv2.blur(gradient2, (25, 25))
-	blurred = cv2.GaussianBlur(gradient2,(15,15),0)
-	#blurred = cv2.boxFilter(gradient2, -1, (25,25))
-	#blurred = cv2.medianBlur(gradient2,5)
-	#blurred = cv2.bilateralFilter(gradient2,9,75,75)
 
 	if plot_gradientes == 1:
 		plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
@@ -806,7 +808,7 @@ def calcula_banda(image, height, width):
 		plt.show()				
 
 	#Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
-	umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)	    #Para gasolinera
+	umbral,binaria = cv2.threshold(gradient2,45,255,cv2.THRESH_BINARY)	    #Para gasolinera
 	# umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
 
 	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
@@ -815,7 +817,7 @@ def calcula_banda(image, height, width):
 	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
 	closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
 
-	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 75))		# (Ancho, alto) 
+	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (45, 75))		# (Ancho, alto) 
 	# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
 	opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
 
@@ -826,9 +828,51 @@ def calcula_banda(image, height, width):
 
 	masked2 = cv2.bitwise_and(image, image, mask=dilated)
 
+	output = cv2.connectedComponentsWithStats(dilated, 4, cv2.CV_32S)
+	# numero_etiquetas = output[0]
+	# stats = output[2]
+	# areas = stats[:, cv2.CC_STAT_AREA]
+	# centroids = output[3]
+	(numLabels, labels, stats, centroids) = output
+
+	mascara_area = numpy.zeros((height, width), dtype="uint8")
+
+	for i in range(1, numLabels):	#Obviamos el índice 0 que corresponde al fondo negro
+		# extract the connected component statistics for the current label
+		x = stats[i, cv2.CC_STAT_LEFT]
+		y = stats[i, cv2.CC_STAT_TOP]
+		w = stats[i, cv2.CC_STAT_WIDTH]
+		h = stats[i, cv2.CC_STAT_HEIGHT]
+		area = stats[i, cv2.CC_STAT_AREA]
+		print(area)
+		ok_area = area > 100000 
+		# print(ok_area)
+
+		if ok_area == True:
+			# construct a mask for the current connected component and
+			# then take the bitwise OR with the mask
+			componentMask = (labels == i).astype("uint8") * 255
+			mascara_area = cv2.bitwise_or(mascara_area, componentMask)
+	
+	# plt.subplot(311),plt.imshow(image,cmap = 'gray')
+	# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(312),plt.imshow(dilated,cmap = 'gray')
+	# plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(313),plt.imshow(mascara_area,cmap = 'gray')
+	# plt.title('Máscara áreas'), plt.xticks([]), plt.yticks([])
+	# plt.show()	
+
+		# print('Número de etiquetas:', numero_etiquetas)	
+		# print('Stats:', stats)
+		# print('Centroides:', centroids)
+		# print('Áreas:', areas)
+
+	masked3 = cv2.bitwise_and(image, image, mask=mascara_area)
+
+
 	if plot_morfologia == 1:
-		plt.subplot(231),plt.imshow(blurred,cmap = 'gray')
-		plt.title('Suavizado gaussiano'), plt.xticks([]), plt.yticks([])
+		plt.subplot(231),plt.imshow(image,cmap = 'gray')
+		plt.title('Original image'), plt.xticks([]), plt.yticks([])
 		plt.subplot(232),plt.imshow(binaria,cmap = 'gray')
 		plt.title('Binaria'), plt.xticks([]), plt.yticks([])		
 		plt.subplot(233),plt.imshow(closed,cmap = 'gray')
@@ -837,9 +881,9 @@ def calcula_banda(image, height, width):
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 		plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
 		plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
-		plt.subplot(236),plt.imshow(masked2)
+		plt.subplot(236),plt.imshow(masked3)
 		plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
-		plt.show()				
+		plt.show()			
 
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
