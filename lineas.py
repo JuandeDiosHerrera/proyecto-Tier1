@@ -7,6 +7,8 @@ from os.path import isfile, join
 import math
 import numpy
 from natsort import natsorted
+import sys
+
 
 bardet = cv2.barcode_BarcodeDetector()
 
@@ -994,7 +996,9 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 	return vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas
 
 def funcion():
-	numero_bandas = 3
+	numero_bandas = int(sys.argv[1])
+	# print('Número de bandas:', numero_bandas)
+	# print(sys.argv[0])
 	numero_lineas_a_detectar = 10
 
 	vector_aprendizaje = []		
