@@ -9,11 +9,35 @@ import numpy
 from natsort import natsorted
 import sys
 
-
 bardet = cv2.barcode_BarcodeDetector()
 
-# def configuracion_numero_bandas():
-# 	pass	
+def configuracion_numero_bandas(numero_bandas):
+	print('----------------------------------------------------------- Configuración parámetros según número de bandas --------------------------------------------------------')
+	if numero_bandas == 2:
+		separacion = 175
+		separacion3 = 450			#separacion2 + 100
+		separacion2 = 350
+		separacion_min = 200		#separacion2 - 150
+		distancia_eliminar = 400
+
+	elif numero_bandas == 3:
+		separacion = 150
+		separacion3 = 400			#separacion2 + 100
+		separacion2 = 300
+		separacion_min = 150		#separacion2 - 150
+		distancia_eliminar = 350
+
+	elif numero_bandas == 4:
+		separacion = 115
+		separacion3 = 275			#separacion2 + 100
+		separacion2 = 175
+		separacion_min = 25			#separacion2 - 150
+		distancia_eliminar = 275
+
+	print('Se configuran los parámetros para', numero_bandas, 'bandas')
+	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	print('')
+	return separacion, separacion3, separacion2, separacion_min, distancia_eliminar
 
 def Hough(imagen, numero_lineas_detectadas):
 	print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
@@ -116,7 +140,7 @@ def ordena_alturas(vector_alturas, vector_angulos):
 	print('')
 	return tam_vector, alturas_ordenadas, angulos_ordenados
 
-def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje):
+def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min):
 	print('-------------------------------------------------------------------- Emparejamiento de líneas --------------------------------------------------------------------')
 	vector_mascara = []			 #Vector de parejas de alturas
 	alturas = []				 #Vector de alturas definitivas ordenadas
@@ -135,7 +159,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 			print('Alturas:', altura1, '-', altura2)
 
 		#Primera imagen sin usar "vector_aprendizaje"
-		if altura3 - altura1 <= 400 and altura3 - altura1 >= 150:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
+		if altura3 - altura1 <= separacion3 and altura3 - altura1 >= separacion_min:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
 			vector_mascara.append([altura1, altura3])
 			alturas.append(altura1)						
 			alturas.append(altura3)
@@ -145,7 +169,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 			print('Líneas emparejadas:', [altura1, altura3])
 			print(vector_mascara)
 			print('')
-		elif altura2 - altura1 <= 300 and altura2 - altura1 >= 150:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
+		elif altura2 - altura1 <= separacion2 and altura2 - altura1 >= separacion_min:		#Líneas separadas menos de 350 píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
 			alturas.append(altura1)						# "altura1" es la línea de arriba y "altura2" es la línea de abajo
 			alturas.append(altura2)
@@ -465,7 +489,7 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 	# 	pass
 	return vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion
 
-def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores):
+def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar):
 	print('---------------------------------------------------------- Eliminación bandas en productos --------------------------------------------------------------------')
 	print('Vector máscara:', vector_mascara)
 	print('')
@@ -474,7 +498,7 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 	#Quizás hacer el bucle for con la longitud de "vector_mascara" -> for i in range(len(vector_mascara) - 1)
 	for i in range(len(vector_mascara) - 1):	#Ejemplo: 4 bandas detectadas -> i va [0, 2] < 4 - 1 = 3
 		print('Índice:',i,'---',vector_mascara[i-valor_auxiliar][1],'---',vector_mascara[i+1-valor_auxiliar][0])
-		if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < 350:	#Parejas muy próximas -> eliminamos la de abajo
+		if abs(vector_mascara[i-valor_auxiliar][1]-vector_mascara[i+1-valor_auxiliar][0]) < distancia_eliminar:	#Parejas muy próximas -> eliminamos la de abajo
 			print('Pareja eliminada:', vector_mascara[i+1])
 			vector_mascara.pop(i+1)
 			vector_limites_inferiores.pop(i+1)
@@ -999,6 +1023,7 @@ def funcion():
 	numero_bandas = int(sys.argv[1])
 	# print('Número de bandas:', numero_bandas)
 	# print(sys.argv[0])
+	separacion, separacion3, separacion2, separacion_min, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
 	numero_lineas_a_detectar = 10
 
 	vector_aprendizaje = []		
@@ -1031,13 +1056,13 @@ def funcion():
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba --- Proximidad para eliminar banda ---
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 			  350 			      --- 		 Límite inferior + 4 * ancho máximo		      --- 				400				 ---
+# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 		 450 - 350 - 200	      --- 		 Límite inferior + 4 * ancho máximo		      --- 				400				 ---
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 			  300 			      --- 		 Límite inferior + 3 * ancho máximo		      ---				350				 ---
+# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 	     400 - 300 - 150 	      --- 		 Límite inferior + 3 * ancho máximo		      ---				350				 ---
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 			  175 			      --- 		 Límite inferior + 3 * ancho máximo		      ---				275				 ---	
+# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 		 275 - 175 - 25		      --- 		 Límite inferior + 3 * ancho máximo		      ---				275				 ---	
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 			  150 			      --- 		 Límite inferior + 3 * ancho máximo		      ---								 ---
+# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 	     150 				      --- 		 Límite inferior + 3 * ancho máximo		      ---								 ---
 # --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 		#Busco las bandas horizontales por su color
@@ -1089,7 +1114,7 @@ def funcion():
 				img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
 
 				#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
-				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 150)
+				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion)
 
 				#Pinto las líneas definitivas			
 				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
@@ -1115,10 +1140,10 @@ def funcion():
 			tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
 
 			#Emparejamos las líneas detectadas			
-			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje)
+			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min)
 			
 			#Mirar si va mejor después de emparejar eliminar bandas cercana
-			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
+			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar)
 
 			#A partir de la segunda imagen usando ya "vector_aprendizaje"
 			if primera_iter == 0:
