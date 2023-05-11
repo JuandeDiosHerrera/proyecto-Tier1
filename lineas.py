@@ -35,6 +35,11 @@ def configuracion_numero_bandas(numero_bandas):
 		distancia_eliminar = 275
 
 	print('Se configuran los parámetros para', numero_bandas, 'bandas')
+	print('Separación para unir líneas:', separacion)
+	print('Separación para formar pareja grande:', separacion3)
+	print('Separación para formar pareja pequeña:', separacion2)
+	print('Separación mínima para formar pareja:', separacion_min)
+	print('Separación para eliminar parejas muy próximas:', distancia_eliminar)
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
 	return separacion, separacion3, separacion2, separacion_min, distancia_eliminar
@@ -1178,7 +1183,7 @@ def funcion():
 			#En caso de que falten bandas por detectar, las creo artificialmente
 			# if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
 			if numero_de_parejas < numero_bandas:
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter)
+				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion_bandas = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter)
 
 			primera_iter = 0
 
