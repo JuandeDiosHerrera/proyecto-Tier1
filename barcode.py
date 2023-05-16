@@ -8,8 +8,8 @@ import numpy
 bardet = cv2.barcode_BarcodeDetector()
 
 # mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
-# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos prueba zoom'
+# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
+mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos prueba zoom'
 
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 images = numpy.empty(len(onlyfiles), dtype=object)
@@ -101,12 +101,12 @@ for n in range(0, len(onlyfiles)):
 
 		# print(lista_alturas,lista_anchos,lista_areas)    
 
-		plt.subplot(121),plt.imshow(images[n])
-		plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+	plt.subplot(121),plt.imshow(images[n])
+	plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 
-		plt.subplot(122),plt.imshow(img_copy)
-		plt.title('Barcode detection'), plt.xticks([]), plt.yticks([])
-		plt.show()
+	plt.subplot(122),plt.imshow(img_copy)
+	plt.title('Barcode detection'), plt.xticks([]), plt.yticks([])
+	plt.show()
 	"""
 	plt.subplot(111),plt.imshow(img_copy)
 	plt.title('Image'), plt.xticks([]), plt.yticks([])
