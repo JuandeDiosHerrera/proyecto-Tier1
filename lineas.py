@@ -1168,7 +1168,8 @@ def funcion():
 			print('')
 	
 			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
-			vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, ancho, height, numero_bandas, numero_de_parejas)
+			if primera_iter == 0:
+				vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, ancho, height, numero_bandas, numero_de_parejas)
 			
 			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
 			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
