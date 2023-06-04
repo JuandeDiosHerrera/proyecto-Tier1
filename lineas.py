@@ -11,6 +11,18 @@ import sys
 
 bardet = cv2.barcode_BarcodeDetector()
 
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba --- Proximidad para eliminar banda ---
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 		 450 - 350 - 200	      --- 		 Límite inferior + 4 * ancho máximo		      --- 				400				 ---
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 	     400 - 300 - 150 	      --- 		 Límite inferior + 3 * ancho máximo		      ---				350				 ---
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 		 275 - 175 - 25		      --- 		 Límite inferior + 3 * ancho máximo		      ---				275				 ---	
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 	     150 				      --- 		 Límite inferior + 3 * ancho máximo		      ---								 ---
+# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 def configuracion_numero_bandas(numero_bandas):
 	print('----------------------------------------------------------- Configuración parámetros según número de bandas --------------------------------------------------------')
 	if numero_bandas == 2:
@@ -1025,9 +1037,8 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 	return vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas
 
 def funcion():
+	#Se lee el número de bandas y se configuran las variables necesarias
 	numero_bandas = int(sys.argv[1])
-	# print('Número de bandas:', numero_bandas)
-	# print(sys.argv[0])
 	separacion, separacion3, separacion2, separacion_min, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
 	numero_lineas_a_detectar = 10
 
@@ -1038,11 +1049,6 @@ def funcion():
 	indice_lectura_codigos = 0
 	primera_iter = 1
 
-	#mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos'
-	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos folio'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\3B'
-	#mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos productos'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\4B'
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
@@ -1053,344 +1059,287 @@ def funcion():
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
 
 		height, width, channels = images[n].shape 
-		#print('alto:', height)
-		#print('ancho:', width)
-
-		# gray = cv2.cvtColor(images[n], cv2.COLOR_RGB2GRAY)
-
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba --- Proximidad para eliminar banda ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 		 450 - 350 - 200	      --- 		 Límite inferior + 4 * ancho máximo		      --- 				400				 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 	     400 - 300 - 150 	      --- 		 Límite inferior + 3 * ancho máximo		      ---				350				 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 		 275 - 175 - 25		      --- 		 Límite inferior + 3 * ancho máximo		      ---				275				 ---	
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 	     150 				      --- 		 Límite inferior + 3 * ancho máximo		      ---								 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-		#Busco las bandas horizontales por su color
-		filtro_color = 0
-		if filtro_color == 1:
-			# Aislamos por el color las bandas horizontales
-			# mask1 = cv2.inRange(hsv, (30, 50, 50), (50, 255,255))	#Fotos gasolinera
-			mask1 = cv2.inRange(hsv, (7, 134, 145), (7, 233,255))	#Fotos Mercadona
-
-			# kernel1 = numpy.ones((25,25),numpy.uint8)
-			# print(kernel1)
-			kernel_banda1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))		# (Ancho, alto) 
-			closed_banda = cv2.morphologyEx(mask1, cv2.MORPH_CLOSE, kernel_banda1)
-
-			kernel_banda2 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 25))		# (Ancho, alto) 
-			opened_banda = cv2.morphologyEx(closed_banda, cv2.MORPH_OPEN, kernel_banda2)
-
-			# ## mask o yellow (15,0,0) ~ (36, 255, 255)
-			# mask2 = cv2.inRange(hsv, (15,0,0), (36, 255, 255))
-
-			# ## final mask and masked
-			# mask = cv2.bitwise_or(mask1, mask2)
-			target = cv2.bitwise_and(images[n],images[n], mask=opened_banda)
 			
-			plot_color = 1
-			if plot_color == 1:
-				# print('hola')
-				plt.subplot(231),plt.imshow(images[n])
-				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+		#Busco las bandas horizontales por transformada de Hough
+		edges, vector_alturas_unidas, vector_angulos_unidos = Hough_franjas(numero_bandas, height, width, images[n], numero_lineas_a_detectar)
 
-				plt.subplot(232),plt.imshow(mask1, cmap='gray')
-				plt.title('Máscara color'), plt.xticks([]), plt.yticks([])
+		#Si hemos detectado alguna línea
+		if len(vector_alturas_unidas) != 0:
+			img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
 
-				plt.subplot(233),plt.imshow(closed_banda, cmap='gray')
-				plt.title('Cierre'), plt.xticks([]), plt.yticks([])
+			#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
+			vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion)
 
-				plt.subplot(234),plt.imshow(opened_banda, cmap='gray')
+			#Pinto las líneas definitivas			
+			img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
+		else:
+			print('Ninguna línea detectada')
+
+		plot_lineas = 0
+		if plot_lineas == 1:
+			plt.subplot(221),plt.imshow(images[n])
+			plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(222),plt.imshow(edges,cmap = 'gray')
+			plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
+
+			plt.subplot(223),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
+			plt.title('Líneas detectadas'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(224),plt.imshow(img_copy2)	#Pinto las líneas definitivas
+			plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+			plt.show()
+
+		#Obtenemos el número de líneas a emparejar y ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
+		tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
+
+		#Emparejamos las líneas detectadas			
+		vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min)
+		
+		#Mirar si va mejor después de emparejar eliminar bandas cercana
+		vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar)
+
+		#A partir de la segunda imagen usando ya "vector_aprendizaje"
+		if primera_iter == 0:
+			vector_mascara, vector_limites_inferiores, numero_de_parejas = fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, numero_bandas)
+
+		#Ancho de las bandas ya detectadas
+		vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
+		if ancho == 0:
+			ancho = 350
+
+		if primera_iter == 1 and len(vector_mascara) != len(vector_ocupacion):
+			for i in range(len(vector_ocupacion)):
+				if vector_ocupacion[i] == 0:
+					vector_mascara.insert(i, [0, 0])
+					print('Añadido [0, 0] en la posición', i, 'del vector máscara')
+		print('Vector máscara tras relleno con ceros:', vector_mascara)
+		print('')
+
+		#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
+		if primera_iter == 0:
+			vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, ancho, height, numero_bandas, numero_de_parejas)
+		
+		#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
+		mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
+
+		imagen_aprendizaje = cv2.bitwise_and(images[n],images[n], mask=mascara) 
+
+		#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
+		# if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
+		# if numero_de_parejas < numero_bandas:	
+		# 	vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
+
+		#En caso de que falten bandas por detectar, las creo artificialmente
+		# if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
+		if numero_de_parejas < numero_bandas:
+			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion_bandas = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter)
+
+		primera_iter = 0
+
+		#Copia del vector actual para comparar cuando eliminemos alguna pareja
+		vector_mascara_copia = vector_mascara
+
+		#Creamos máscara con rellenos y bandas artificiales antes de eliminar parejas en zona de productos
+		mascara2 = creacion_mascara(height, width, vector_mascara, flag = 0)	
+
+		#Resultado con rellenos y bandas artificiales
+		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
+
+		plot_aprendizaje = 1
+		if plot_aprendizaje == 1:
+			plt.subplot(321),plt.imshow(images[n])	#Imagen original
+			plt.title('Original image'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Bandas formadas a partir de "vector_aprendizaje"
+			plt.title('Learning phase'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Bandas obtenidas en fase de aprendizaje
+			plt.title('Result 1'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Bandas artificiales añadidas en caso de que sea necesario
+			plt.title('Máscara con bandas artificiales'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(325),plt.imshow(target1)	#Resultado final obtenido con el algoritmo completo
+			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
+			plt.show()
+
+		#Comprobamos que las bandas formadas no estén en zona de productos, si es así, eliminamos esa pareja y formamos la máscara con las parejas eliminadas
+		
+		#############################################################################################################################################
+		#Quizás se podría quitar la eliminación de bandas en zonas de productos "eliminacion_bandas_productos()" porque
+		#con la fase de aprendizaje ya vamos a eliminar esas alturas
+		#############################################################################################################################################
+		
+		# vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
+		mascara3 = creacion_mascara(height, width, vector_mascara, flag = 0)	
+
+		#Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
+		# if numero_de_parejas < numero_bandas:
+		# 	vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
+		
+		#Máscara definitiva
+		mascara4 = creacion_mascara(height, width, vector_mascara, flag = 0)
+
+		# mascara4 = cv2.bitwise_or(mascara, mascara4)	#Las parejas detectadas directamente se ensancharon 20 píxeles hacia arriba y 20 píxeles 
+														#hacia abajo, luego hacemos una or para quedarnos con las parejas iniciales ensanchadas
+		
+		#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
+		target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
+
+		plot_bandas = 0
+		if plot_bandas == 1:				
+			plt.subplot(331),plt.imshow(img_copy2)
+			plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(332),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(333),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
+			plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(334),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
+			plt.title('Resultado con rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(335),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
+			plt.title('Parejas eliminadas'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(336),plt.imshow(mascara4, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
+			plt.title('Nuevo relleno y máscara definitiva'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
+			plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
+			plt.show()
+
+		#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
+		#Leemos de las fotos de cerca con un bucle for y aplicamos "gradientes.py"
+		#Segundo bucle para leer las fotos con zoom de las bandas identificadas
+		print('----------------------------------------------------------------- Fase de aprendizaje --------------------------------------------------------------------')
+		print('Vector aprendizaje actual:', vector_aprendizaje)
+		print('')
+		mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
+		onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
+		onlyfiles2 = natsorted(onlyfiles2)
+		# print(onlyfiles2)
+		images2 = numpy.empty(len(onlyfiles2), dtype=object)
+
+
+		#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
+		#Secuencia 1
+		vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+		vector_imagen2 = [True, True, False]
+		vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
+
+		# #Secuencia 2
+		# vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+		# vector_imagen2 = [False, True, False]
+		# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
+
+		# #Secuencia 3
+		# vector_imagen1 = [True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+		# vector_imagen2 = [False, False]
+		# vector_imagen3 = [False, False]		#True: lee código - False: no lee código
+
+		#Secuencia 4
+		# vector_imagen1 = [False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+		# vector_imagen2 = [True, True, True]
+		# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
+
+		vector_imagenes = [vector_imagen1, vector_imagen2, vector_imagen3]
+
+		for m in range(0, len(vector_imagenes[indice_lectura_codigos])):
+			# print(vector_imagenes[indice_lectura_codigos][m])
+			if vector_imagenes[indice_lectura_codigos][m] == True: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
+				print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
+				if (vector_aprendizaje[0][1] == 0 and m  == 0) or (vector_aprendizaje[1][1] == 0 and m  == 1) or (vector_aprendizaje[2][1] == 0 and m  == 2):
+					vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
+
+				if vector_aprendizaje[m][0] < vector_mascara[m][0]:	#Si hemos conseguido leer código de una banda con el límite superior
+					vector_aprendizaje[m][0] = vector_mascara[m][0]		#más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
+
+				if vector_aprendizaje[m][1] > vector_mascara[m][1]:	#Si hemos conseguido leer código de una banda con el límite inferior
+					vector_aprendizaje[m][1] = vector_mascara[m][1]		#más hacia arriba, es porque la banda la podemos estrechar más y seguir leyendo
+
+			else:
+				print('Código/s de barras NO identificado/s en imagen', m, '-> no se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
+			# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
+
+			print('Vector aprendizaje modificado:', vector_aprendizaje)
+			print('')
+		
+		indice_lectura_codigos = indice_lectura_codigos + 1
+
+		"""
+		for m in range(0, len(onlyfiles2)):
+			images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
+			images2[m] = cv2.cvtColor(images2[m], cv2.COLOR_BGR2RGB)
+
+			# plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
+			# plt.title('Foto'), plt.xticks([]), plt.yticks([])
+			# plt.show()	
+
+			target, target_gray, blurred, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
+
+			print('Vector máscara:', vector_mascara)
+			all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
+			if all_zeros == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
+				print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
+				vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Añadimos la altura al vector definitivo. Cada valor del
+																						#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
+			# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
+
+			print('Vector aprendizaje:', vector_aprendizaje)
+
+############################################################################################################################################
+			# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
+			opened_copy = opened.copy()
+			contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+			image_copy = images[n].copy()
+
+			#Obtención del píxel central de los códigos de barras identificados
+			for i in contours:
+				M = cv2.moments(i)
+				if M['m00'] != 0:
+					cx = int(M['m10']/M['m00'])
+					cy = int(M['m01']/M['m00'])
+					cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
+					cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
+			
+			plot_gradientes = 1
+			if plot_gradientes == 1:
+				plt.subplot(231),plt.imshow(images2[n])
+				plt.title('Zoom códigos'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
+				plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
+
+				# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
+				# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
+
+				plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
+				plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
+				
+				plt.subplot(234),plt.imshow(closed,cmap = 'gray')
+				plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
+
+				plt.subplot(235),plt.imshow(opened,cmap = 'gray')
 				plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 
-				plt.subplot(235),plt.imshow(target)
-				plt.title('Color detection'), plt.xticks([]), plt.yticks([])
-				plt.show()
+				plt.subplot(236),plt.imshow(masked)
+				plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+				plt.show()	
+############################################################################################################################################
+			
+		print('-------------------------------------------------------------------- Fin fase de aprendizaje --------------------------------------------------------------------')
+
+		"""
 		
-		# Busco las bandas horizontales por transformada de Hough
-		else:
-			edges, vector_alturas_unidas, vector_angulos_unidos = Hough_franjas(numero_bandas, height, width, images[n], numero_lineas_a_detectar)
-
-			if len(vector_alturas_unidas) != 0:
-				img_copy1 = pintar_lineas(images[n], height, width, None, vector_alturas_unidas, vector_angulos_unidos)	#Para pintar todas las líneas detectadas
-
-				#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
-				vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion)
-
-				#Pinto las líneas definitivas			
-				img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)	#Para pintar las líneas definitivas 
-			else:
-				print('Ninguna línea detectada')
-
-			plot_lineas = 0
-			if plot_lineas == 1:
-				plt.subplot(221),plt.imshow(images[n])
-				plt.title('Original Image'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(222),plt.imshow(edges,cmap = 'gray')
-				plt.title('Edges detection'), plt.xticks([]), plt.yticks([])	
-
-				plt.subplot(223),plt.imshow(img_copy1)	#Pinto todas las líneas detectadas
-				plt.title('Líneas detectadas'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(224),plt.imshow(img_copy2)	#Pinto las líneas definitivas
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-				plt.show()
-
-			#Obtenemos el número de líneas a emparejar y ordenamos los vectores de menor rho a mayor y los ángulos acorde a cómo se han ordenado las distancias (rho)
-			tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
-
-			#Emparejamos las líneas detectadas			
-			vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min)
-			
-			#Mirar si va mejor después de emparejar eliminar bandas cercana
-			vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar)
-
-			#A partir de la segunda imagen usando ya "vector_aprendizaje"
-			if primera_iter == 0:
-				vector_mascara, vector_limites_inferiores, numero_de_parejas = fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, numero_bandas)
-
-			#Ancho de las bandas ya detectadas
-			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
-			if ancho == 0:
-				ancho = 350
-
-			if primera_iter == 1 and len(vector_mascara) != len(vector_ocupacion):
-				for i in range(len(vector_ocupacion)):
-					if vector_ocupacion[i] == 0:
-						vector_mascara.insert(i, [0, 0])
-						print('Añadido [0, 0] en la posición', i, 'del vector máscara')
-			print('Vector máscara tras relleno con ceros:', vector_mascara)
-			print('')
-	
-			#Completamos las bandas que tras la fase de aprendizaje están solo con uno de los bordes 
-			if primera_iter == 0:
-				vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas = completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, ancho, height, numero_bandas, numero_de_parejas)
-			
-			#Creamos máscara para filtrar por alturas solo con las parejas detectadas directamente
-			mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
-
-			imagen_aprendizaje = cv2.bitwise_and(images[n],images[n], mask=mascara) 
-
-			#Si el número de parejas es menor que el número de bandas significa que todavía faltan bandas por detectar
-			# if numero_lineas_desechadas != 0 and numero_de_parejas < numero_bandas:	#Quizás es un while ------- Miro si debo rellenar una línea desechada para formar una banda
-			# if numero_de_parejas < numero_bandas:	
-			# 	vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas, numero_lineas_desechadas = relleno_lineas_sueltas(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, vector_desechadas, numero_lineas_desechadas, vector_indices, ancho)
-
-			#En caso de que falten bandas por detectar, las creo artificialmente
-			# if numero_lineas_desechadas == 0 and numero_de_parejas < numero_bandas:	#Hay que crear artificialmente bandas horizontales
-			if numero_de_parejas < numero_bandas:
-				vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion_bandas = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter)
-
-			primera_iter = 0
-
-			#Copia del vector actual para comparar cuando eliminemos alguna pareja
-			vector_mascara_copia = vector_mascara
-
-			#Creamos máscara con rellenos y bandas artificiales antes de eliminar parejas en zona de productos
-			mascara2 = creacion_mascara(height, width, vector_mascara, flag = 0)	
-
-			#Resultado con rellenos y bandas artificiales
-			target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
-
-			plot_aprendizaje = 1
-			if plot_aprendizaje == 1:
-				plt.subplot(321),plt.imshow(images[n])	#Imagen original
-				plt.title('Original image'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Bandas formadas a partir de "vector_aprendizaje"
-				plt.title('Learning phase'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Bandas obtenidas en fase de aprendizaje
-				plt.title('Result 1'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Bandas artificiales añadidas en caso de que sea necesario
-				plt.title('Máscara con bandas artificiales'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(325),plt.imshow(target1)	#Resultado final obtenido con el algoritmo completo
-				plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
-				plt.show()
-
-			#Comprobamos que las bandas formadas no estén en zona de productos, si es así, eliminamos esa pareja y formamos la máscara con las parejas eliminadas
-			
-			#############################################################################################################################################
-			#Quizás se podría quitar la eliminación de bandas en zonas de productos "eliminacion_bandas_productos()" porque
-			#con la fase de aprendizaje ya vamos a eliminar esas alturas
-			#############################################################################################################################################
-			
-			# vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores)
-			mascara3 = creacion_mascara(height, width, vector_mascara, flag = 0)	
-
-			#Si al eliminar parejas tenemos menos que el numero de bandas, debemos de crear bandas artificiales (llamada a función de crear bandas artificiales)
-			# if numero_de_parejas < numero_bandas:
-			# 	vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion, separacion = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, numero_lineas_desechadas)
-			
-			#Máscara definitiva
-			mascara4 = creacion_mascara(height, width, vector_mascara, flag = 0)
-
-			# mascara4 = cv2.bitwise_or(mascara, mascara4)	#Las parejas detectadas directamente se ensancharon 20 píxeles hacia arriba y 20 píxeles 
-															#hacia abajo, luego hacemos una or para quedarnos con las parejas iniciales ensanchadas
-			
-			#Resultado final tras eliminar bandas en productos y rellenar con bandas artificiales las bandas restantes
-			target2 = cv2.bitwise_and(images[n],images[n], mask=mascara4)
-
-			plot_bandas = 0
-			if plot_bandas == 1:				
-				plt.subplot(331),plt.imshow(img_copy2)
-				plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(332),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-				plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(333),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
-				plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(334),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
-				plt.title('Resultado con rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(335),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-				plt.title('Parejas eliminadas'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(336),plt.imshow(mascara4, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-				plt.title('Nuevo relleno y máscara definitiva'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
-				plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
-				plt.show()
-
-			#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
-			#Leemos de las fotos de cerca con un bucle for y aplicamos "gradientes.py"
-			#Segundo bucle para leer las fotos con zoom de las bandas identificadas
-			print('----------------------------------------------------------------- Fase de aprendizaje --------------------------------------------------------------------')
-			print('Vector aprendizaje actual:', vector_aprendizaje)
-			print('')
-			mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
-			onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
-			onlyfiles2 = natsorted(onlyfiles2)
-			# print(onlyfiles2)
-			images2 = numpy.empty(len(onlyfiles2), dtype=object)
-
-
-			#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
-			#Secuencia 1
-			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			vector_imagen2 = [True, True, False]
-			vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
-
-			# #Secuencia 2
-			# vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			# vector_imagen2 = [False, True, False]
-			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
-
-			# #Secuencia 3
-			# vector_imagen1 = [True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			# vector_imagen2 = [False, False]
-			# vector_imagen3 = [False, False]		#True: lee código - False: no lee código
-
-			#Secuencia 4
-			# vector_imagen1 = [False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-			# vector_imagen2 = [True, True, True]
-			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
-
-			vector_imagenes = [vector_imagen1, vector_imagen2, vector_imagen3]
-
-			for m in range(0, len(vector_imagenes[indice_lectura_codigos])):
-				# print(vector_imagenes[indice_lectura_codigos][m])
-				if vector_imagenes[indice_lectura_codigos][m] == True: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
-					print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
-					if (vector_aprendizaje[0][1] == 0 and m  == 0) or (vector_aprendizaje[1][1] == 0 and m  == 1) or (vector_aprendizaje[2][1] == 0 and m  == 2):
-						vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
-
-					if vector_aprendizaje[m][0] < vector_mascara[m][0]:	#Si hemos conseguido leer código de una banda con el límite superior
-						vector_aprendizaje[m][0] = vector_mascara[m][0]		#más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
-
-					if vector_aprendizaje[m][1] > vector_mascara[m][1]:	#Si hemos conseguido leer código de una banda con el límite inferior
-						vector_aprendizaje[m][1] = vector_mascara[m][1]		#más hacia arriba, es porque la banda la podemos estrechar más y seguir leyendo
-
-				else:
-					print('Código/s de barras NO identificado/s en imagen', m, '-> no se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
-				# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
-
-				print('Vector aprendizaje modificado:', vector_aprendizaje)
-				print('')
-			
-			indice_lectura_codigos = indice_lectura_codigos + 1
-
-			"""
-			for m in range(0, len(onlyfiles2)):
-				images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
-				images2[m] = cv2.cvtColor(images2[m], cv2.COLOR_BGR2RGB)
-
-				# plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
-				# plt.title('Foto'), plt.xticks([]), plt.yticks([])
-				# plt.show()	
-
-				target, target_gray, blurred, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
-
-				print('Vector máscara:', vector_mascara)
-				all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
-				if all_zeros == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
-					print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
-					vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Añadimos la altura al vector definitivo. Cada valor del
-																							#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
-				# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
-
-				print('Vector aprendizaje:', vector_aprendizaje)
-
-############################################################################################################################################
-				# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
-				opened_copy = opened.copy()
-				contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-				image_copy = images[n].copy()
-
-				#Obtención del píxel central de los códigos de barras identificados
-				for i in contours:
-					M = cv2.moments(i)
-					if M['m00'] != 0:
-						cx = int(M['m10']/M['m00'])
-						cy = int(M['m01']/M['m00'])
-						cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
-						cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
-				
-				plot_gradientes = 1
-				if plot_gradientes == 1:
-					plt.subplot(231),plt.imshow(images2[n])
-					plt.title('Zoom códigos'), plt.xticks([]), plt.yticks([])
-
-					plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
-					plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
-
-					# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
-					# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
-
-					plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
-					plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
-					
-					plt.subplot(234),plt.imshow(closed,cmap = 'gray')
-					plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
-
-					plt.subplot(235),plt.imshow(opened,cmap = 'gray')
-					plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-
-					plt.subplot(236),plt.imshow(masked)
-					plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
-					plt.show()	
-############################################################################################################################################
-				
-			print('-------------------------------------------------------------------- Fin fase de aprendizaje --------------------------------------------------------------------')
-
-			"""
-			
-		#Guardar imagen 
-		# filename = 'savedImage.jpg'
-		# target2 = cv2.cvtColor(target2, cv2.COLOR_RGB2BGR)
-		# cv2.imwrite(filename, target2)
-		# target2 = cv2.cvtColor(target2, cv2.COLOR_BGR2RGB)
+	#Guardar imagen 
+	# filename = 'savedImage.jpg'
+	# target2 = cv2.cvtColor(target2, cv2.COLOR_RGB2BGR)
+	# cv2.imwrite(filename, target2)
+	# target2 = cv2.cvtColor(target2, cv2.COLOR_BGR2RGB)
 
 		
 
