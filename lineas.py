@@ -863,6 +863,10 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 	
 	return vector_mascara, vector_limites_inferiores, vector_ocupacion, numero_de_parejas
 
+#################################################################################################################################################
+#################################################################################################################################################
+#################################################################################################################################################
+
 #Función principal
 def funcion():
 	#Se lee el número de bandas y se configuran las variables necesarias
