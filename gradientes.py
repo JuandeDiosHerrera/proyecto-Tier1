@@ -7,30 +7,24 @@ from os.path import isfile, join
 import math
 import numpy
 from lineas import *
-# from lineas import Hough
-# from lineas import pintar_lineas
-# from lineas import seleccion_lineas_definitivas
-# from lineas import ordena_alturas
-# from lineas import creacion_mascara
 
+#Función de la etapa 3. Busca líneas horizontales en la mitad de la imagen, ya que la imagen es solo la banda de la que estamos haciendo el barrido.
 def calcula_banda(image, height, width):
-	#Se supone que partimos de la imagen con las bandas identificadas, luego vamos a calcular Hough para adaptar la imagen a que solo tenga las 
-	#bandas y los productos con píxeles negros
+	plot_banda = 0
+	plot_gradientes = 0
+	plot_morfologia = 1
 	edges, lines = Hough(image, 7) 
-	# print(lines)
-	# print('')
 
 	vector_alturas_unidas = []
 	vector_angulos_unidos = []
 	for i in range(len(lines)):
-		#print(i)
 		vector_alturas_unidas.append(lines[i][0][0])
 		vector_angulos_unidos.append(lines[i][0][1])
 
 	print('rho:', vector_alturas_unidas)
 	print('theta:', vector_angulos_unidos)
 
-	img_copy = pintar_lineas(image, height, width, lines, None, None)	#Para pintar todas las líneas detectadas
+	img_copy = pintar_lineas(image, height, width, lines, None, None)	
 
 	#Saco las dos líneas que delimitan la banda
 	vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 300)
@@ -40,74 +34,131 @@ def calcula_banda(image, height, width):
 
 	#Formamos "vector_mascara" y creamos la máscara
 	vector_mascara = []
-	# for i in range(len(alturas_ordenadas)):
-	# 	if alturas_ordenadas[i] >
 
-	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2250]
+	#Filtramos las alturas según si están en la franja central de la imagen
+	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2150]
 
 	print('Altura banda zoom:',alturas_ordenadas)
+	print('')
 
 	vector_mascara.append([alturas_ordenadas[0], alturas_ordenadas[1]])
+	#Máscara que elimina todo menos la banda
 	mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
 
 	#Aplicamos la máscara
-	target = cv2.bitwise_and(image,image, mask=mascara)
-
+	target = cv2.bitwise_and(image,image, mask=mascara)	
 	target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
 
-	#Cálculo gradientes y conversión a valores enteros positivos
-	grad_x = cv2.Sobel(target_gray, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	if plot_banda == 1:
+		plt.subplot(131),plt.imshow(image)
+		plt.title('Zoom Image'), plt.xticks([]), plt.yticks([])
+		plt.subplot(132),plt.imshow(target)
+		plt.title('Banda identificada'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(133),plt.imshow(target_gray, cmap = 'gray')
+		plt.title('Banda grayscale'), plt.xticks([]), plt.yticks([])			
+		plt.show()	
+
+	#Suavizado previo a calcular los gradientes vertical y horizontal de la imagen en escala de grises
+	blurred = cv2.GaussianBlur(target_gray,(15,15),0)
+
+	#Cálculo de gradientes y conversión a valores enteros positivos
+	grad_x = cv2.Sobel(blurred, cv2.CV_16S, 1, 0, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 	abs_grad_x = cv2.convertScaleAbs(grad_x)
 
-	grad_y = cv2.Sobel(target_gray, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
+	grad_y = cv2.Sobel(blurred, cv2.CV_16S, 0, 1, ksize=3, scale=1, delta=0, borderType=cv2.BORDER_DEFAULT)
 	abs_grad_y = cv2.convertScaleAbs(grad_y)
 	
 	#Cálculo gradiente absoluto 
 	gradient1 = cv2.subtract(grad_x, grad_y)
 	gradient2 = cv2.convertScaleAbs(gradient1)
-	#print(gradient2.max())
-	#print(gradient2.min())
 
-	#Suavizado: probar cuál funciona mejor (gaussiano)
-	#blurred = cv2.blur(gradient2, (25, 25))
-	blurred = cv2.GaussianBlur(gradient2,(15,15),0)
-	#blurred = cv2.boxFilter(gradient2, -1, (25,25))
-	#blurred = cv2.medianBlur(gradient2,5)
-	#blurred = cv2.bilateralFilter(gradient2,9,75,75)
+	if plot_gradientes == 1:
+		plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
+		plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
+		plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
+		plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
+		plt.title('Resta'), plt.xticks([]), plt.yticks([])	
+		plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
+		plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
+		plt.show()				
 
-	#Plot gradientes
-	# plt.subplot(221),plt.imshow(abs_grad_x,cmap = 'gray')
-	# plt.title('Gradiente X'), plt.xticks([]), plt.yticks([])
-	# plt.subplot(222),plt.imshow(abs_grad_y,cmap = 'gray')
-	# plt.title('Gradiente Y'), plt.xticks([]), plt.yticks([])		
-	# plt.subplot(223),plt.imshow(gradient1,cmap = 'gray')
-	# plt.title('Resta'), plt.xticks([]), plt.yticks([])		
-	# plt.subplot(224),plt.imshow(gradient2,cmap = 'gray')
-	# plt.title('Valor absoluto'), plt.xticks([]), plt.yticks([])
-	# plt.show()				
+	#Se binariza la imagen
+	umbral,binaria = cv2.threshold(gradient2,45,255,cv2.THRESH_BINARY)
 
-	#Se binariza la imagen, se hace paertura y luego se cierra para formar el rectángulo que engloba al código de barras
-	umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)	    #Para gasolinera
-	# umbral,binaria = cv2.threshold(blurred,75,255,cv2.THRESH_BINARY)		#Para Mercadona
-
-	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (25, 25))   		# (Ancho, alto)
+	#Se hace un cierre para formarlos rectángulos que engloban a los códigos de barras
 	kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 5))   		# (Ancho, alto)
-
-	# kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 12))   		# (Ancho, alto)
 	closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
 
-	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 75))		# (Ancho, alto) 
-	# kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (10, 3))		# (Ancho, alto) 
+	#Luego se hace una apertura para limpiar la imagen y quedarnos solo con los rectángulos de los códigos de barras
+	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (45, 75))		# (Ancho, alto) 
 	opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
 
+	#Resultado con la máscara que idealmente solo tiene los rectángulos de los códigos de barras, aunque puede tener puntos sueltos
 	masked = cv2.bitwise_and(image, image, mask=opened)
 
-	return target_gray, binaria, closed, opened, masked
+	#Dilatado para asegurarnos que los rectángulos circunscriben a los códigos de barras por completo 
+	kernel3 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
+	dilated = cv2.dilate(opened, kernel3)
+
+	#Resultado con la máscara que tiene los códigos de barras cirncunscritos por completos
+	masked2 = cv2.bitwise_and(image, image, mask=dilated)
+
+	#Realizamos un etiquetado de la imagen binaria
+	output = cv2.connectedComponentsWithStats(dilated, 4, cv2.CV_32S)
+	(numLabels, labels, stats, centroids) = output
+
+	mascara_area = numpy.zeros((height, width), dtype="uint8")
+
+	for i in range(1, numLabels):		#Obviamos el índice 0 que corresponde al fondo negro
+		x = stats[i, cv2.CC_STAT_LEFT]
+		y = stats[i, cv2.CC_STAT_TOP]
+		w = stats[i, cv2.CC_STAT_WIDTH]
+		h = stats[i, cv2.CC_STAT_HEIGHT]
+		area = stats[i, cv2.CC_STAT_AREA]
+
+		#Umbral de píxeles que se aplica a cada etiqueta para eliminar los posibles puntos blancos sueltos de la imagen y, quedarnos seguro solo con los rectángulos de los códigos de barras
+		ok_area = area > 100000 
+
+		#Si el área de esa etiqueta es superior, añadimos esa etiqueta a la nueva máscara "mascara_area" que ya no contendrá los puntos sueltos
+		if ok_area == True:
+			componentMask = (labels == i).astype("uint8") * 255
+			mascara_area = cv2.bitwise_or(mascara_area, componentMask)
+	
+	# plt.subplot(311),plt.imshow(image,cmap = 'gray')
+	# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(312),plt.imshow(dilated,cmap = 'gray')
+	# plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+	# plt.subplot(313),plt.imshow(mascara_area,cmap = 'gray')
+	# plt.title('Máscara áreas'), plt.xticks([]), plt.yticks([])
+	# plt.show()	
+
+	#Resultado final tras eliminar los puntos sueltos 
+	masked3 = cv2.bitwise_and(image, image, mask=mascara_area)
+
+	if plot_morfologia == 1:
+		plt.subplot(231),plt.imshow(image,cmap = 'gray')
+		plt.title('Original image'), plt.xticks([]), plt.yticks([])
+		plt.subplot(232),plt.imshow(binaria,cmap = 'gray')
+		plt.title('Binaria'), plt.xticks([]), plt.yticks([])		
+		plt.subplot(233),plt.imshow(closed,cmap = 'gray')
+		plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
+		plt.subplot(234),plt.imshow(opened,cmap = 'gray')
+		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
+		plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
+		plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+		plt.subplot(236),plt.imshow(masked3)
+		plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
+		plt.show()			
+
+	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
+	print('')
+
+	return target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, masked3, mascara_area
 
 def funcion():
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
-	print(onlyfiles)
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
@@ -115,7 +166,7 @@ def funcion():
 
 		height, width, channels = images[n].shape 
 
-		target_gray, binaria, closed, opened, masked = calcula_banda(images[n], height, width)
+		target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, masked3, mascara_area = calcula_banda(images[n], height, width)
 		
 		"""
 		cv2.imshow('original', img)
@@ -126,8 +177,8 @@ def funcion():
 		"""
 
 		# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
-		opened_copy = opened.copy()
-		contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		filtro_area_copy = mascara_area.copy()
+		contours, hierarchy = cv2.findContours(filtro_area_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 		image_copy = images[n].copy()
 
@@ -157,30 +208,36 @@ def funcion():
 			if M['m00'] != 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-				cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
-				cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
+				cv2.drawContours(masked3, [i], -1, (0, 255, 0), 6)
+				cv2.circle(masked3, (cx, cy), 40, (255, 0, 0), -1)
 		
 		plot_gradientes = 1
 		if plot_gradientes == 1:
-			plt.subplot(231),plt.imshow(images[n])
+			plt.subplot(331),plt.imshow(images[n])
 			plt.title('Zoom códigos'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
+			plt.subplot(332),plt.imshow(target_gray,cmap = 'gray')
 			plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
 
 			# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
 			# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
+			plt.subplot(333),plt.imshow(binaria,cmap = 'gray')
 			plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
 			
-			plt.subplot(234),plt.imshow(closed,cmap = 'gray')
+			plt.subplot(334),plt.imshow(closed,cmap = 'gray')
 			plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
 
-			plt.subplot(235),plt.imshow(opened,cmap = 'gray')
+			plt.subplot(335),plt.imshow(opened,cmap = 'gray')
 			plt.title('Apertura'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(236),plt.imshow(masked)
+			plt.subplot(336),plt.imshow(dilated,cmap = 'gray')
+			plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(337),plt.imshow(mascara_area,cmap = 'gray')
+			plt.title('Filtro área'), plt.xticks([]), plt.yticks([])
+
+			plt.subplot(338),plt.imshow(masked3)
 			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 			plt.show()	
 	
