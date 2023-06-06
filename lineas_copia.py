@@ -415,8 +415,15 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 
 #Divide la imagen en tantas franjas horizontales como número de bandas a identificar. Además, le calcula la transformada de Hough a cada banda en busca de líneas horizontales
 def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar):
-	edges, lines = Hough(image, 50)
-	plot_franjas = 1
+	edges, lines = Hough(image, 30)
+	hough_completa = pintar_lineas(image, height, width, lines, None, None)	#Para pintar todas las líneas detectadas en la franja 1
+
+	filename = 'Hough a imagen completa.jpg'
+	hough_completa = cv2.cvtColor(hough_completa, cv2.COLOR_RGB2BGR)
+	cv2.imwrite(filename, hough_completa)
+
+
+	plot_franjas = 0
 	plot_edges = 0
 
 	if numero_bandas == 2:
@@ -477,28 +484,39 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 		image2 = cv2.bitwise_and(image, image, mask=cuarto2)
 		image3 = cv2.bitwise_and(image, image, mask=cuarto3)
 
-		if plot_franjas == 1:
-			plt.imshow(image,cmap = 'gray')
-			plt.show()
-
-			plt.imshow(image1,cmap = 'gray')
-			plt.show()
-
-			plt.imshow(image2,cmap = 'gray')
-			plt.show()
-
-			plt.imshow(image3,cmap = 'gray')	
-			plt.xticks([]), plt.yticks([])
-			plt.show()
+		
 
 		edges1, lines1 = Hough(image1, numero_lineas_a_detectar)	
-		img_copy11 = pintar_lineas(image, height, width, lines1, None, None)	#Para pintar todas las líneas detectadas en la franja 1
-
+		img_copy11 = pintar_lineas(image1, height, width, lines1, None, None)	#Para pintar todas las líneas detectadas en la franja 1
+		
 		edges2, lines2 = Hough(image2, numero_lineas_a_detectar)	
-		img_copy12 = pintar_lineas(image, height, width, lines2, None, None)	#Para pintar todas las líneas detectadas en la franja 2
+		img_copy12 = pintar_lineas(image2, height, width, lines2, None, None)	#Para pintar todas las líneas detectadas en la franja 2
 		
 		edges3, lines3 = Hough(image3, numero_lineas_a_detectar)
-		img_copy13 = pintar_lineas(image, height, width, lines3, None, None)	#Para pintar todas las líneas detectadas en la franja 3
+		img_copy13 = pintar_lineas(image3, height, width, lines3, None, None)	#Para pintar todas las líneas detectadas en la franja 3
+
+		if plot_franjas == 1:
+			plt.imshow(img_copy11,cmap = 'gray')
+			plt.show()
+
+			plt.imshow(img_copy12,cmap = 'gray')
+			plt.show()
+
+			plt.imshow(img_copy13,cmap = 'gray')
+			plt.show()
+
+			
+		# cv2.imshow('franja 1', img_copy11)
+		# cv2.waitKey() 
+
+		# imagen_final = cv2.bitwise_and(img_copy11, img_copy12)
+		# imagen_final = cv2.bitwise_and(imagen_final, img_copy13)
+
+
+		imagen_final = img_copy11 | img_copy12 | img_copy13
+		filename = 'Hough por franjas.jpg'
+		imagen_final = cv2.cvtColor(imagen_final, cv2.COLOR_RGB2BGR)
+		cv2.imwrite(filename, imagen_final)
 
 		#Hay que unir los 3 elementos "lineX"
 		vector_alturas_unidas = []
@@ -882,8 +900,10 @@ def funcion():
 	primera_iter = 1
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
+
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
 	images = numpy.empty(len(onlyfiles), dtype=object)
@@ -978,7 +998,7 @@ def funcion():
 		#Resultado las bandas artificiales
 		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
-		plot_aprendizaje = 1
+		plot_aprendizaje = 0
 		if plot_aprendizaje == 1:
 			plt.subplot(321),plt.imshow(images[n])	#Imagen original
 			plt.title('Original image'), plt.xticks([]), plt.yticks([])

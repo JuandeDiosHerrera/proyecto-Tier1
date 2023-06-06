@@ -431,7 +431,7 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 
 		if plot_franjas == 1:
 			plt.subplot(221),plt.imshow(image,cmap = 'gray')
-			plt.title('Edges'), plt.xticks([]), plt.yticks([])
+			plt.title('Imagen original'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(222),plt.imshow(image1,cmap = 'gray')
 			plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
@@ -479,7 +479,7 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 
 		if plot_franjas == 1:
 			plt.subplot(221),plt.imshow(image,cmap = 'gray')
-			plt.title('Edges'), plt.xticks([]), plt.yticks([])
+			plt.title('Imagen original'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(222),plt.imshow(image1,cmap = 'gray')
 			plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
@@ -543,7 +543,7 @@ def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar)
 
 		if plot_franjas == 1:
 			plt.subplot(231),plt.imshow(image,cmap = 'gray')
-			plt.title('Edges'), plt.xticks([]), plt.yticks([])
+			plt.title('Imagen original'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(232),plt.imshow(image1,cmap = 'gray')
 			plt.title('1ª franja'), plt.xticks([]), plt.yticks([])
