@@ -145,7 +145,7 @@ def seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, s
 	
 	return vector_alturas, vector_angulos
 
-#Función que ordena los pares (rho, theta) definitivos de par con menor theta a par con mayor theta
+#Función que ordena los pares (rho, theta) definitivos de par con menor rho a par con mayor rho
 def ordena_alturas(vector_alturas, vector_angulos):
 	tam_vector = len(vector_alturas)
 	print('Tamaño vector:',tam_vector)

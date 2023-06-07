@@ -901,8 +901,8 @@ def funcion():
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
@@ -927,6 +927,9 @@ def funcion():
 
 			#Pinto las líneas definitivas			
 			img_copy2 = pintar_lineas(images[n], height, width, None, vector_alturas, vector_angulos)
+			filename = 'Lineas definitivas.jpg'
+			img_copy2 = cv2.cvtColor(img_copy2, cv2.COLOR_RGB2BGR)
+			cv2.imwrite(filename, img_copy2)
 		else:
 			print('Ninguna línea detectada')
 
