@@ -282,7 +282,7 @@ def creacion_mascara(height, width, vector_mascara, flag):
 	
 	return mascara
 
-#
+#Función que crea bandas artificiales cuando no hemos sido capaces de formar todas las parejas a partir de las líneas detectadas por Hough. Para ello utiliza la suposición de que las bandas son equidistantes
 def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter):
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 

@@ -901,8 +901,8 @@ def funcion():
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
-	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
+	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	onlyfiles = natsorted(onlyfiles)
@@ -957,6 +957,7 @@ def funcion():
 		#Miramos si alguna de las parejas formadas está muy próxima a otra, en ese caso, eliminamos la banda de abajo
 		vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar)
 
+
 		#A partir de la segunda imagen, usamos el "vector_aprendizaje"
 		if primera_iter == 0:
 			vector_mascara, vector_limites_inferiores, numero_de_parejas = fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, numero_bandas)
@@ -982,6 +983,12 @@ def funcion():
 		
 		#Creamos máscara para filtrar por alturas usando las parejas formadas
 		mascara = creacion_mascara(height, width, vector_mascara, flag = 1)	
+		filename = 'Creacion mascara.jpg'
+		mascara.dtype='uint8'
+		mascara= mascara * 255
+		cv2.imwrite(filename,mascara)
+
+		
 
 		#Resultado obtenido hasta ahora
 		imagen_aprendizaje = cv2.bitwise_and(images[n],images[n], mask=mascara) 
@@ -1001,6 +1008,11 @@ def funcion():
 		#Resultado las bandas artificiales
 		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
+		imagen_ocupacion = cv2.bitwise_and(images[n],images[n], mask=mascara)
+		filename = 'Imagen para vector_ocupacion.jpg'
+		imagen_ocupacion = cv2.cvtColor(imagen_ocupacion, cv2.COLOR_RGB2BGR)
+		cv2.imwrite(filename, imagen_ocupacion)
+
 		plot_aprendizaje = 0
 		if plot_aprendizaje == 1:
 			plt.subplot(321),plt.imshow(images[n])	#Imagen original
@@ -1019,29 +1031,29 @@ def funcion():
 			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
 			plt.show()
 
-		# plot_bandas = 1
-		# if plot_bandas == 1:				
-		# 	plt.subplot(331),plt.imshow(img_copy2)
-		# 	plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
+		plot_bandas = 1
+		if plot_bandas == 1:				
+			plt.subplot(331),plt.imshow(img_copy2)
+			plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(332),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-		# 	plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
+			plt.subplot(332),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
+			plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(333),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
-		# 	plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
+			plt.subplot(333),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
+			plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(334),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
-		# 	plt.title('Resultado con rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
+			plt.subplot(334),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
+			plt.title('Resultado con rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(335),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-		# 	plt.title('Parejas eliminadas'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(335),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
+			# plt.title('Parejas eliminadas'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(336),plt.imshow(mascara4, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-		# 	plt.title('Nuevo relleno y máscara definitiva'), plt.xticks([]), plt.yticks([])
+			# plt.subplot(336),plt.imshow(mascara4, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
+			# plt.title('Nuevo relleno y máscara definitiva'), plt.xticks([]), plt.yticks([])
 
-		# 	plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
-		# 	plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
-		# 	plt.show()
+			# plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
+			# plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
+			plt.show()
 
 		#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
 		#Leemos las imágenes del barrido con un bucle for y aplicamos "gradientes.py"
