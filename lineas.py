@@ -937,10 +937,11 @@ def funcion():
 			vector_mascara, vector_limites_inferiores, numero_de_parejas = fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, numero_bandas)
 
 		#Obtenemos el ancho de las bandas completas ya detectadas
-		vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
-		#En caso de no existir ninguna banda completa, suponemos un ancho de banda por defecto
-		if ancho == 0:
-			ancho = 350
+		if primera_iter == 0:
+			vector_anchos, ancho = ancho_bandas(numero_de_parejas, vector_mascara)
+			#En caso de no existir ninguna banda completa, suponemos un ancho de banda por defecto
+			if ancho == 0:
+				ancho = 350
 
 		#Arreglo praa resolver un problema de dimensiones
 		if primera_iter == 1 and len(vector_mascara) != len(vector_ocupacion):
