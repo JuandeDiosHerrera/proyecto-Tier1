@@ -780,7 +780,6 @@ def fase_aprendizaje(vector_mascara, vector_desechadas, vector_aprendizaje, nume
 				vector_desechar_parejas[j] = vector_desechar_parejas[j] + 1
 		print('')
 
-	print(vector_desechar_parejas)
 	#Hay que añadir las parejas que no pasan al vector máscara definitivo a las líneas desechadas para ver si alguna línea suelta, ya no como pareja, se puede añadir al vector máscara definitivo
 	for i in range(len(vector_mascara)):
 		if vector_desechar_parejas[i] == len(vector_aprendizaje):
