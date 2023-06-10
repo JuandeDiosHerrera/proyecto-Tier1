@@ -286,8 +286,7 @@ def creacion_mascara(height, width, vector_mascara, flag):
 def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, primera_iter):
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
-	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 
-	
+	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 	
 	i = 0				
 	separacion = 0
 
@@ -304,6 +303,12 @@ def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion,
 			altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
 			altura2_media = int((vector_mascara[i+2][0] + vector_mascara[i+2][1]) / 2)
 			separacion = int((altura2_media - altura1_media) / 2)
+			break
+		#Miro si la banda que estoy mirando y la que está tres posiciones más por delante están ocupadas. En ese casos obtendríamos 3 * (separación entre bandas) y se dividiría entre tres para obtener la separación entre bandas consecutivas
+		elif i < len(vector_ocupacion) - 3 and vector_ocupacion[i] == 1 and vector_ocupacion[i+3] == 1:		#Banda ocupada, hueco, banda ocupada
+			altura1_media = int((vector_mascara[i][0] + vector_mascara[i][1]) / 2)
+			altura2_media = int((vector_mascara[i+3][0] + vector_mascara[i+3][1]) / 2)
+			separacion = int((altura2_media - altura1_media) / 3)
 			break
 		i = i + 1		
 
