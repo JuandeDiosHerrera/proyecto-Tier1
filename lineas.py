@@ -872,7 +872,7 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 #################################################################################################################################################
 
 #Función principal
-def funcion():
+def funcion_principal():
 	#Se lee el número de bandas y se configuran las variables necesarias
 	numero_bandas = int(sys.argv[1])
 	separacion, separacion3, separacion2, separacion_min, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
@@ -979,7 +979,7 @@ def funcion():
 		#Creamos la máscara con las bandas artificiales 
 		mascara2 = creacion_mascara(height, width, vector_mascara, flag = 0)	
 
-		#Resultado las bandas artificiales
+		#Resultado final
 		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
 		plot_aprendizaje = 1
@@ -1156,7 +1156,7 @@ def funcion():
 		
 
 if __name__ == "__main__":              
-	funcion()
+	funcion_principal()
 
 
 
