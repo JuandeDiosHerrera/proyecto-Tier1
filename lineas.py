@@ -980,7 +980,7 @@ def funcion_principal():
 		mascara2 = creacion_mascara(height, width, vector_mascara, flag = 0)	
 
 		#Resultado final
-		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
+		resultado = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
 		plot_aprendizaje = 1
 		if plot_aprendizaje == 1:
@@ -996,7 +996,7 @@ def funcion_principal():
 			plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Bandas artificiales añadidas en caso de que sea necesario
 			plt.title('Máscara con bandas artificiales'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(325),plt.imshow(target1)	#Resultado final obtenido con el algoritmo completo
+			plt.subplot(325),plt.imshow(resultado)	#Resultado final obtenido con el algoritmo completo
 			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
 			plt.show()
 

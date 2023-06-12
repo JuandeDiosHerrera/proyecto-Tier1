@@ -26,7 +26,7 @@ def calcula_banda(image, height, width):
 
 	img_copy = pintar_lineas(image, height, width, lines, None, None)	
 
-	#Saco las dos líneas que delimitan la banda
+	#Miro la altura de las líneas y desecho las que representan la misma línea horizontal para quedarme solo con una
 	vector_alturas, vector_angulos = seleccion_lineas_definitivas(vector_alturas_unidas, vector_angulos_unidos, separacion = 300)
 
 	#Ordenamos alturas para formar máscara
@@ -35,7 +35,7 @@ def calcula_banda(image, height, width):
 	#Formamos "vector_mascara" y creamos la máscara
 	vector_mascara = []
 
-	#Filtramos las alturas según si están en la franja central de la imagen
+	#Filtramos las líneas según sus alturas (nos quedamos con aquellas que están en la franja central de la imagen)
 	alturas_ordenadas = [x for x in alturas_ordenadas if x > 850 and x < 2150]
 
 	print('Altura banda zoom:',alturas_ordenadas)
