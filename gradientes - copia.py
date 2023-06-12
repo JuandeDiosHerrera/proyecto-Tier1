@@ -98,28 +98,27 @@ def calcula_banda(image, height, width):
 		plt.show()				
 
 	#Se binariza la imagen
-	umbral,binaria = cv2.threshold(gradient2,45,255,cv2.THRESH_BINARY)
+	umbral,binaria = cv2.threshold(gradient2,100,255,cv2.THRESH_BINARY)
+	filename = 'Binaria foto zoom.jpg'
+	cv2.imwrite(filename, binaria)
 
 	#Se hace un cierre para formarlos rectángulos que engloban a los códigos de barras
 	kernel1 = cv2.getStructuringElement(cv2.MORPH_RECT, (20, 5))   		# (Ancho, alto)
 	closed = cv2.morphologyEx(binaria, cv2.MORPH_CLOSE, kernel1)
+	filename = 'Cierre foto zoom.jpg'
+	cv2.imwrite(filename, closed)
 
 	#Luego se hace una apertura para limpiar la imagen y quedarnos solo con los rectángulos de los códigos de barras
-	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (45, 75))		# (Ancho, alto) 
+	kernel2 = cv2.getStructuringElement(cv2.MORPH_RECT, (45, 45))		# (Ancho, alto) 
 	opened = cv2.morphologyEx(closed, cv2.MORPH_OPEN, kernel2)
+	filename = 'Apertura foto zoom.jpg'
+	cv2.imwrite(filename, opened)
 
 	#Resultado con la máscara que idealmente solo tiene los rectángulos de los códigos de barras, aunque puede tener puntos sueltos
 	masked = cv2.bitwise_and(image, image, mask=opened)
 
-	#Dilatado para asegurarnos que los rectángulos circunscriben a los códigos de barras por completo 
-	kernel3 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
-	dilated = cv2.dilate(opened, kernel3)
-
-	#Resultado con la máscara que tiene los códigos de barras cirncunscritos por completos
-	masked2 = cv2.bitwise_and(image, image, mask=dilated)
-
 	#Realizamos un etiquetado de la imagen binaria
-	output = cv2.connectedComponentsWithStats(dilated, 4, cv2.CV_32S)
+	output = cv2.connectedComponentsWithStats(opened, 4, cv2.CV_32S)
 	(numLabels, labels, stats, centroids) = output
 
 	mascara_area = numpy.zeros((height, width), dtype="uint8")
@@ -132,13 +131,25 @@ def calcula_banda(image, height, width):
 		area = stats[i, cv2.CC_STAT_AREA]
 
 		#Umbral de píxeles que se aplica a cada etiqueta para eliminar los posibles puntos blancos sueltos de la imagen y, quedarnos seguro solo con los rectángulos de los códigos de barras
-		ok_area = area > 100000 
+		ok_area = area > 10000
 
 		#Si el área de esa etiqueta es superior, añadimos esa etiqueta a la nueva máscara "mascara_area" que ya no contendrá los puntos sueltos
 		if ok_area == True:
 			componentMask = (labels == i).astype("uint8") * 255
 			mascara_area = cv2.bitwise_or(mascara_area, componentMask)
 	
+	filename = 'Mascara filtro area foto zoom.jpg'
+	cv2.imwrite(filename, mascara_area)
+
+	#Dilatado para asegurarnos que los rectángulos circunscriben a los códigos de barras por completo 
+	kernel3 = cv2.getStructuringElement(cv2.MORPH_RECT, (50, 50))		# (Ancho, alto) 
+	dilated = cv2.dilate(mascara_area, kernel3)
+	filename = 'Dilatado foto zoom.jpg'
+	cv2.imwrite(filename, dilated)
+	
+	#Resultado con la máscara que tiene los códigos de barras cirncunscritos por completos
+	masked2 = cv2.bitwise_and(image, image, mask=dilated)
+
 	# plt.subplot(311),plt.imshow(image,cmap = 'gray')
 	# plt.title('Original Image'), plt.xticks([]), plt.yticks([])
 	# plt.subplot(312),plt.imshow(dilated,cmap = 'gray')
