@@ -871,7 +871,7 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 #################################################################################################################################################
 #################################################################################################################################################
 
-#Función principal
+#Función principal de la etapa 1
 def funcion_principal():
 	#Se lee el número de bandas y se configuran las variables necesarias
 	numero_bandas = int(sys.argv[1])

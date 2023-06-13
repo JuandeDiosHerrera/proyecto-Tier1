@@ -10,7 +10,6 @@ bardet = cv2.barcode_BarcodeDetector()
 # mypath='C:\\Users\\joseh\\Documents\\Juan de Dios\\TFG\\Fotos folio'
 # mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos prueba zoom'
-
 onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 images = numpy.empty(len(onlyfiles), dtype=object)
 for n in range(0, len(onlyfiles)):

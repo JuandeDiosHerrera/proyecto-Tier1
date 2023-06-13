@@ -129,9 +129,9 @@ def calcula_banda(image, height, width):
 		w = stats[i, cv2.CC_STAT_WIDTH]
 		h = stats[i, cv2.CC_STAT_HEIGHT]
 		area = stats[i, cv2.CC_STAT_AREA]
-
+		print(area)
 		#Umbral de píxeles que se aplica a cada etiqueta para eliminar los posibles puntos blancos sueltos de la imagen y, quedarnos seguro solo con los rectángulos de los códigos de barras
-		ok_area = area > 10000
+		ok_area = area > 25000
 
 		#Si el área de esa etiqueta es superior, añadimos esa etiqueta a la nueva máscara "mascara_area" que ya no contendrá los puntos sueltos
 		if ok_area == True:
@@ -159,7 +159,9 @@ def calcula_banda(image, height, width):
 	# plt.show()	
 
 	#Resultado final tras eliminar los puntos sueltos 
-	masked3 = cv2.bitwise_and(image, image, mask=mascara_area)
+	filename = 'Codigos detectados foto zoom.jpg'
+	img_copy2 = cv2.cvtColor(masked2, cv2.COLOR_RGB2BGR)
+	cv2.imwrite(filename, img_copy2)
 
 	if plot_morfologia == 1:
 		plt.subplot(231),plt.imshow(image,cmap = 'gray')
@@ -170,16 +172,16 @@ def calcula_banda(image, height, width):
 		plt.title('Cierre'), plt.xticks([]), plt.yticks([])	
 		plt.subplot(234),plt.imshow(opened,cmap = 'gray')
 		plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-		plt.subplot(235),plt.imshow(dilated,cmap = 'gray')
+		plt.subplot(235),plt.imshow(mascara_area,cmap = 'gray')
+		plt.title('Filtro área'), plt.xticks([]), plt.yticks([])
+		plt.subplot(236),plt.imshow(dilated,cmap = 'gray')
 		plt.title('Dilatado'), plt.xticks([]), plt.yticks([])
-		plt.subplot(236),plt.imshow(masked3)
-		plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
-		plt.show()			
+		plt.show()					
 
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
 
-	return target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, masked3, mascara_area
+	return target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, mascara_area
 
 def funcion():
 	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
@@ -191,7 +193,7 @@ def funcion():
 
 		height, width, channels = images[n].shape 
 
-		target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, masked3, mascara_area = calcula_banda(images[n], height, width)
+		target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, mascara_area = calcula_banda(images[n], height, width)
 		
 		"""
 		cv2.imshow('original', img)
@@ -203,7 +205,7 @@ def funcion():
 
 		# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
 		filtro_area_copy = mascara_area.copy()
-		contours, hierarchy = cv2.findContours(filtro_area_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+		contours, hierarchy = cv2.findContours(dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
 		image_copy = images[n].copy()
 
@@ -233,8 +235,12 @@ def funcion():
 			if M['m00'] != 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-				cv2.drawContours(masked3, [i], -1, (0, 255, 0), 6)
-				cv2.circle(masked3, (cx, cy), 40, (255, 0, 0), -1)
+				cv2.drawContours(images[n], [i], -1, (0, 255, 0), 6)
+				cv2.circle(images[n], (cx, cy), 40, (255, 0, 0), -1)
+
+		filename = 'Codigos detectados centroide foto zoom.jpg'
+		img_copy2 = cv2.cvtColor(images[n], cv2.COLOR_RGB2BGR)
+		cv2.imwrite(filename, img_copy2)
 		
 		plot_gradientes = 1
 		if plot_gradientes == 1:
@@ -262,7 +268,7 @@ def funcion():
 			plt.subplot(337),plt.imshow(mascara_area,cmap = 'gray')
 			plt.title('Filtro área'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(338),plt.imshow(masked3)
+			plt.subplot(338),plt.imshow(masked2)
 			plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
 			plt.show()	
 	
