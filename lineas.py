@@ -1080,7 +1080,19 @@ def funcion_principal():
 			print('')
 		
 		indice_lectura_codigos = indice_lectura_codigos + 1
-
+		"""
+		for i in range(len(vector_mascara)):
+			if banda_correcta[i] == True: 	#Significa que no todo es '0' en dilated y que por tanto hemos identificado códigos de barras
+				#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
+				if (vector_aprendizaje[0][1] == 0 and i  == 0) or (vector_aprendizaje[1][1] == 0 and i  == 1) or (vector_aprendizaje[2][1] == 0 and i  == 2):
+					vector_aprendizaje[i] = [vector_mascara[i][0], vector_mascara[i][1]]	
+				#Si hemos conseguido leer código de una banda con el límite superior más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
+				if vector_aprendizaje[i][0] < vector_mascara[i][0]:	
+					vector_aprendizaje[i][0] = vector_mascara[i][0]		
+				#Si hemos conseguido leer código de una banda con el límite inferior más hacia arriba, es porque la banda la podemos estrechar más y seguir leyendo
+				if vector_aprendizaje[i][1] > vector_mascara[i][1]:	
+					vector_aprendizaje[i][1] = vector_mascara[i][1]		
+		"""
 		"""
 		for m in range(0, len(onlyfiles2)):
 			images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
