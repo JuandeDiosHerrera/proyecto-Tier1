@@ -30,33 +30,29 @@ def configuracion_numero_bandas(numero_bandas):
 		separacion = 175
 		separacion3 = 450			#separacion2 + 100
 		separacion2 = 350
-		separacion_min = 200		#separacion2 - 150
 		distancia_eliminar = 400
 
 	elif numero_bandas == 3:
 		separacion = 150
 		separacion3 = 400			#separacion2 + 100
 		separacion2 = 300
-		separacion_min = 150		#separacion2 - 150
 		distancia_eliminar = 350
 
 	elif numero_bandas == 4:
 		separacion = 115
 		separacion3 = 275			#separacion2 + 100
 		separacion2 = 175
-		separacion_min = 25			#separacion2 - 150
 		distancia_eliminar = 275
 
 	print('Se configuran los parámetros para', numero_bandas, 'bandas')
 	print('Separación para unir líneas:', separacion)
 	print('Separación para formar pareja grande:', separacion3)
 	print('Separación para formar pareja pequeña:', separacion2)
-	print('Separación mínima para formar pareja:', separacion_min)
 	print('Separación para eliminar parejas muy próximas:', distancia_eliminar)
 	print('-------------------------------------------------------------------------------------------------------------------------------------------------------------------')
 	print('')
 
-	return separacion, separacion3, separacion2, separacion_min, distancia_eliminar
+	return separacion, separacion3, separacion2, distancia_eliminar
 
 #Función que calcula la transformada de Hough en busca de líneas horizontales (rho resolución 1 píxel, theta = 90º +- 2.5º)
 def Hough(imagen, numero_lineas_detectadas):
@@ -158,7 +154,7 @@ def ordena_alturas(vector_alturas, vector_angulos):
 	return tam_vector, alturas_ordenadas, angulos_ordenados
 
 #Miramos si dos pares están cerca, si es así, los agrupamos formando una banda
-def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min):
+def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, separacion3, separacion2):
 	print('-------------------------------------------------------------------- Emparejamiento de líneas --------------------------------------------------------------------')
 	vector_mascara = []			 #Vector de parejas de alturas
 	alturas = []				 #Vector de alturas definitivas ordenadas
@@ -176,7 +172,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 		else:
 			print('Alturas:', altura1, '-', altura2)
 
-		if altura3 - altura1 <= separacion3 and altura3 - altura1 >= separacion_min:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
+		if altura3 - altura1 <= separacion3:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
 			vector_mascara.append([altura1, altura3])
 			alturas.append(altura1)						
 			alturas.append(altura3)
@@ -185,7 +181,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 			print('Líneas emparejadas:', [altura1, altura3])
 			print(vector_mascara)
 			print('')
-		elif altura2 - altura1 <= separacion2 and altura2 - altura1 >= separacion_min:		#Líneas separadas menos de "separacion2" píxeles -> pareja de líneas
+		elif altura2 - altura1 <= separacion2:		#Líneas separadas menos de "separacion2" píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
 			alturas.append(altura1)						# "altura1" es la línea de arriba y "altura2" es la línea de abajo
 			alturas.append(altura2)
@@ -420,7 +416,7 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 
 #Divide la imagen en tantas franjas horizontales como número de bandas a identificar. Además, le calcula la transformada de Hough a cada banda en busca de líneas horizontales
 def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar):
-	edges, lines = Hough(image, 50)
+	edges, lines = Hough(image, 30)
 	plot_franjas = 0
 	plot_edges = 0
 
@@ -875,7 +871,7 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 def funcion_principal():
 	#Se lee el número de bandas y se configuran las variables necesarias
 	numero_bandas = int(sys.argv[1])
-	separacion, separacion3, separacion2, separacion_min, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
+	separacion, separacion3, separacion2, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
 	numero_lineas_a_detectar = 10
 
 	vector_aprendizaje = []		
@@ -932,7 +928,7 @@ def funcion_principal():
 		tam_vector, alturas_ordenadas, angulos_ordenados = ordena_alturas(vector_alturas, vector_angulos)
 
 		#Emparejamos las líneas detectadas			
-		vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, vector_aprendizaje, separacion3, separacion2, separacion_min)
+		vector_mascara, alturas, vector_limites_inferiores, vector_ocupacion, vector_desechadas, vector_indices, numero_de_parejas, numero_lineas_desechadas = emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, separacion3, separacion2)
 		
 		#Miramos si alguna de las parejas formadas está muy próxima a otra, en ese caso, eliminamos la banda de abajo
 		vector_mascara, vector_limites_inferiores, numero_de_parejas, vector_ocupacion = eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, vector_limites_inferiores, distancia_eliminar)
