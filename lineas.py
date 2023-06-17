@@ -986,7 +986,7 @@ def funcion_principal():
 			plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Bandas formadas a partir de "vector_aprendizaje"
 			plt.title('Learning phase'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Bandas obtenidas en fase de aprendizaje
+			plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Bandas obtenidas en fase de aprendizaje (si es la primera iteración es la misma máscara que se obtiene tras eliminar las parejas en zona de productos)
 			plt.title('Result 1'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Bandas artificiales añadidas en caso de que sea necesario

@@ -901,7 +901,7 @@ def funcion():
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
@@ -1007,6 +1007,9 @@ def funcion():
 
 		#Resultado las bandas artificiales
 		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
+		filename = 'Resultado.jpg'
+		target1 = cv2.cvtColor(target1, cv2.COLOR_RGB2BGR)
+		cv2.imwrite(filename, target1)
 
 		imagen_ocupacion = cv2.bitwise_and(images[n],images[n], mask=mascara)
 		filename = 'Imagen para vector_ocupacion.jpg'
