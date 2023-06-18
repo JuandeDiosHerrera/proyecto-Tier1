@@ -983,11 +983,11 @@ def funcion_principal():
 			plt.subplot(321),plt.imshow(images[n])	#Imagen original
 			plt.title('Original image'), plt.xticks([]), plt.yticks([])
 
-			plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Bandas formadas a partir de "vector_aprendizaje"
-			plt.title('Learning phase'), plt.xticks([]), plt.yticks([])
+			plt.subplot(322),plt.imshow(mascara, cmap = 'gray')	#Bandas formadas a partir de "vector_aprendizaje" (si es la primera iteración se trata de las parejas que quedan tras pasar por "eliminacion_bandas_productos")
+			plt.title('Máscara tras fase de aprendizaje'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(323),plt.imshow(imagen_aprendizaje)	#Bandas obtenidas en fase de aprendizaje (si es la primera iteración es la misma máscara que se obtiene tras eliminar las parejas en zona de productos)
-			plt.title('Result 1'), plt.xticks([]), plt.yticks([])
+			plt.title('Resultado intermedio'), plt.xticks([]), plt.yticks([])
 
 			plt.subplot(324),plt.imshow(mascara2, cmap = 'gray')	#Bandas artificiales añadidas en caso de que sea necesario
 			plt.title('Máscara con bandas artificiales'), plt.xticks([]), plt.yticks([])
@@ -995,30 +995,6 @@ def funcion_principal():
 			plt.subplot(325),plt.imshow(resultado)	#Resultado final obtenido con el algoritmo completo
 			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
 			plt.show()
-
-		# plot_bandas = 1
-		# if plot_bandas == 1:				
-		# 	plt.subplot(331),plt.imshow(img_copy2)
-		# 	plt.title('Líneas definitivas'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(332),plt.imshow(mascara, cmap = 'gray')	#Pinto la máscara con las parejas iniciales			
-		# 	plt.title('Parejas iniciales'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(333),plt.imshow(mascara2, cmap = 'gray')	#Pinto la máscara con los rellenos y bandas artificiales		
-		# 	plt.title('Rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(334),plt.imshow(target1)	#Resultado con rellenos y bandas artificiales
-		# 	plt.title('Resultado con rellenos y bandas artificiales'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(335),plt.imshow(mascara3, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-		# 	plt.title('Parejas eliminadas'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(336),plt.imshow(mascara4, cmap = 'gray')	#Pinto la máscara sin las parejas en la zona de productos y con las bandas definitivas		
-		# 	plt.title('Nuevo relleno y máscara definitiva'), plt.xticks([]), plt.yticks([])
-
-		# 	plt.subplot(337),plt.imshow(target2)	#Resultado con las bandas definitivas
-		# 	plt.title('Bandas detectadas'), plt.xticks([]), plt.yticks([])
-		# 	plt.show()
 
 		#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
 		#Leemos las imágenes del barrido con un bucle for y aplicamos "gradientes.py"
@@ -1028,41 +1004,48 @@ def funcion_principal():
 		mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
 		onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
 		onlyfiles2 = natsorted(onlyfiles2)
-		# print(onlyfiles2)
 		images2 = numpy.empty(len(onlyfiles2), dtype=object)
 
+		if numero_bandas == 2:
+			#Secuencia 1
+			vector_imagen1 = [True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [True, True]
+			vector_imagen3 = [True, True]		#True: lee código - False: no lee código	
+			#Secuencia 2
+			# vector_imagen1 = [True, False]	
+			# vector_imagen2 = [True, True]
+			# vector_imagen3 = [True, True]		#True: lee código - False: no lee código	
 
-		#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
-		#Secuencia 1
-		vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-		vector_imagen2 = [True, True, False]
-		vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
+		elif numero_bandas == 3:
+			#Secuencia 1
+			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [True, True, True]
+			vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
+			# #Secuencia 2
+			# vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [False, True, False]
+			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
 
-		# #Secuencia 2
-		# vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-		# vector_imagen2 = [False, True, False]
-		# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
+		elif numero_bandas == 4:
+			#Secuencia 1
+			vector_imagen1 = [True, False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen2 = [False, False, True, True]
+			vector_imagen3 = [False, False, True, True]		#True: lee código - False: no lee código
+			#Secuencia 2
+			# vector_imagen1 = [False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			# vector_imagen2 = [True, True, True]
+			# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
 
-		# #Secuencia 3
-		# vector_imagen1 = [True, False]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-		# vector_imagen2 = [False, False]
-		# vector_imagen3 = [False, False]		#True: lee código - False: no lee código
-
-		#Secuencia 4
-		# vector_imagen1 = [False, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
-		# vector_imagen2 = [True, True, True]
-		# vector_imagen3 = [True, True, False]		#True: lee código - False: no lee código
-
+		#Vector que contiene la validez de todas las bandas identificadas en la secuencia de tres imágenes
 		vector_imagenes = [vector_imagen1, vector_imagen2, vector_imagen3]
 
-		for m in range(0, len(vector_imagenes[indice_lectura_codigos])):
-			# print(vector_imagenes[indice_lectura_codigos][m])
+		for m in range(0, numero_bandas):			#vector_imagenes[número de imagen][número de banda]
 			if vector_imagenes[indice_lectura_codigos][m] == True: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
 				print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
-				if (vector_aprendizaje[0][1] == 0 and m  == 0) or (vector_aprendizaje[1][1] == 0 and m  == 1) or (vector_aprendizaje[2][1] == 0 and m  == 2):
+				if vector_aprendizaje[m][1] == 0:
 					vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
 
-				if vector_aprendizaje[m][0] < vector_mascara[m][0]:	#Si hemos conseguido leer código de una banda con el límite superior
+				if vector_aprendizaje[m][0] != 0 and vector_aprendizaje[m][0] < vector_mascara[m][0]:	#Si hemos conseguido leer código de una banda con el límite superior
 					vector_aprendizaje[m][0] = vector_mascara[m][0]		#más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
 
 				if vector_aprendizaje[m][1] > vector_mascara[m][1]:	#Si hemos conseguido leer código de una banda con el límite inferior
@@ -1075,93 +1058,7 @@ def funcion_principal():
 			print('Vector aprendizaje modificado:', vector_aprendizaje)
 			print('')
 		
-		indice_lectura_codigos = indice_lectura_codigos + 1
-		"""
-		for i in range(len(vector_mascara)):
-			if banda_correcta[i] == True: 	#Significa que no todo es '0' en dilated y que por tanto hemos identificado códigos de barras
-				#Primera vez que se le da valor a una de las posiciones del vector de aprendizaje
-				if (vector_aprendizaje[0][1] == 0 and i  == 0) or (vector_aprendizaje[1][1] == 0 and i  == 1) or (vector_aprendizaje[2][1] == 0 and i  == 2):
-					vector_aprendizaje[i] = [vector_mascara[i][0], vector_mascara[i][1]]	
-				#Si hemos conseguido leer código de una banda con el límite superior más hacia abajo, es porque la banda la podemos estrechar más y seguir leyendo
-				if vector_aprendizaje[i][0] < vector_mascara[i][0]:	
-					vector_aprendizaje[i][0] = vector_mascara[i][0]		
-				#Si hemos conseguido leer código de una banda con el límite inferior más hacia arriba, es porque la banda la podemos estrechar más y seguir leyendo
-				if vector_aprendizaje[i][1] > vector_mascara[i][1]:	
-					vector_aprendizaje[i][1] = vector_mascara[i][1]		
-		"""
-		"""
-		for m in range(0, len(onlyfiles2)):
-			images2[m] = cv2.imread( join(mypath2,onlyfiles2[m]) ) 
-			images2[m] = cv2.cvtColor(images2[m], cv2.COLOR_BGR2RGB)
-
-			# plt.subplot(111),plt.imshow(images2[m])	#Pinto las líneas definitivas
-			# plt.title('Foto'), plt.xticks([]), plt.yticks([])
-			# plt.show()	
-
-			target, target_gray, blurred, binaria, closed, opened, masked = calcula_banda(images2[n], height, width)
-
-			print('Vector máscara:', vector_mascara)
-			all_zeros = not numpy.any(opened) #Para ver si todos los elementos de la matriz son 0 (es decir, no se han identificado códigos de barras)
-			if all_zeros == False: 	#Significa que no todo es '0' y que por tanto hemos identificado códigos de barras
-				print('Código/s de barras identificado/s en imagen', m, '-> se almacena la altura de la banda', m, ':', [vector_mascara[m][0], vector_mascara[m][1]])
-				vector_aprendizaje[m] = [vector_mascara[m][0], vector_mascara[m][1]]	#Añadimos la altura al vector definitivo. Cada valor del
-																						#índice "k" corresponderá a una banda (k=0 -> banda de más arriba, k=1 -> segunda banda, etc)
-			# Si añadiésemos la altura del algoritmo de "gradientes.py" estarían todas entre 850 y 2250, luego esa no es la altura que se debe añadir
-
-			print('Vector aprendizaje:', vector_aprendizaje)
-
-############################################################################################################################################
-			# Se buscan los contornos de los códigos de barras (rectángulos) y se pintan
-			opened_copy = opened.copy()
-			contours, hierarchy = cv2.findContours(opened_copy, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
-			image_copy = images[n].copy()
-
-			#Obtención del píxel central de los códigos de barras identificados
-			for i in contours:
-				M = cv2.moments(i)
-				if M['m00'] != 0:
-					cx = int(M['m10']/M['m00'])
-					cy = int(M['m01']/M['m00'])
-					cv2.drawContours(masked, [i], -1, (0, 255, 0), 6)
-					cv2.circle(masked, (cx, cy), 40, (255, 0, 0), -1)
-			
-			plot_gradientes = 1
-			if plot_gradientes == 1:
-				plt.subplot(231),plt.imshow(images2[n])
-				plt.title('Zoom códigos'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(232),plt.imshow(target_gray,cmap = 'gray')
-				plt.title('Zoom escala de grises'), plt.xticks([]), plt.yticks([])
-
-				# plt.subplot(233),plt.imshow(blurred,cmap = 'gray')
-				# plt.title('Suavizado'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(233),plt.imshow(binaria,cmap = 'gray')
-				plt.title('Binaria'), plt.xticks([]), plt.yticks([])			
-				
-				plt.subplot(234),plt.imshow(closed,cmap = 'gray')
-				plt.title('Cierre'), plt.xticks([]), plt.yticks([]) 
-
-				plt.subplot(235),plt.imshow(opened,cmap = 'gray')
-				plt.title('Apertura'), plt.xticks([]), plt.yticks([])
-
-				plt.subplot(236),plt.imshow(masked)
-				plt.title('Códigos detectados'), plt.xticks([]), plt.yticks([])
-				plt.show()	
-############################################################################################################################################
-			
-		print('-------------------------------------------------------------------- Fin fase de aprendizaje --------------------------------------------------------------------')
-
-		"""
-		
-	#Guardar imagen 
-	# filename = 'savedImage.jpg'
-	# target2 = cv2.cvtColor(target2, cv2.COLOR_RGB2BGR)
-	# cv2.imwrite(filename, target2)
-	# target2 = cv2.cvtColor(target2, cv2.COLOR_BGR2RGB)
-
-		
+		indice_lectura_codigos = indice_lectura_codigos + 1			
 
 if __name__ == "__main__":              
 	funcion_principal()
