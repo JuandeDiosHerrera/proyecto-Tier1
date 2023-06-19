@@ -8,6 +8,7 @@ import math
 import numpy
 from natsort import natsorted
 import sys
+import time
 
 bardet = cv2.barcode_BarcodeDetector()
 
@@ -172,7 +173,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 		else:
 			print('Alturas:', altura1, '-', altura2)
 
-		if altura3 - altura1 <= separacion3:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
+		if abs(altura3 - altura1) <= separacion3:	#Caso de 3 líneas muy juntas, nos quedamos con la dos más exteriores
 			vector_mascara.append([altura1, altura3])
 			alturas.append(altura1)						
 			alturas.append(altura3)
@@ -181,7 +182,7 @@ def emparejamiento_lineas(tam_vector, alturas_ordenadas, height, numero_bandas, 
 			print('Líneas emparejadas:', [altura1, altura3])
 			print(vector_mascara)
 			print('')
-		elif altura2 - altura1 <= separacion2:		#Líneas separadas menos de "separacion2" píxeles -> pareja de líneas
+		elif abs(altura2 - altura1) <= separacion2:		#Líneas separadas menos de "separacion2" píxeles -> pareja de líneas
 			vector_mascara.append([altura1, altura2])
 			alturas.append(altura1)						# "altura1" es la línea de arriba y "altura2" es la línea de abajo
 			alturas.append(altura2)
@@ -869,6 +870,7 @@ def completar_bandas_aprendizaje(vector_mascara, vector_limites_inferiores, anch
 
 #Función principal de la etapa 1
 def funcion_principal():
+	vector_tiempos = []
 	#Se lee el número de bandas y se configuran las variables necesarias
 	numero_bandas = int(sys.argv[1])
 	separacion, separacion3, separacion2, distancia_eliminar = configuracion_numero_bandas(numero_bandas)
@@ -890,6 +892,8 @@ def funcion_principal():
 		images[n] = cv2.imread( join(mypath,onlyfiles[n]) ) 
 		hsv = cv2.cvtColor(images[n], cv2.COLOR_BGR2HSV)
 		images[n] = cv2.cvtColor(images[n], cv2.COLOR_BGR2RGB)
+
+		start = time.time()
 
 		height, width, channels = images[n].shape 
 			
@@ -978,7 +982,7 @@ def funcion_principal():
 		#Resultado final
 		resultado = cv2.bitwise_and(images[n],images[n], mask=mascara2)
 
-		plot_aprendizaje = 1
+		plot_aprendizaje = 0
 		if plot_aprendizaje == 1:
 			plt.subplot(321),plt.imshow(images[n])	#Imagen original
 			plt.title('Original image'), plt.xticks([]), plt.yticks([])
@@ -996,15 +1000,9 @@ def funcion_principal():
 			plt.title('Resultado final'), plt.xticks([]), plt.yticks([])
 			plt.show()
 
-		#Una vez creada la máscara definitiva, aplicamos la fase de aprendizaje
-		#Leemos las imágenes del barrido con un bucle for y aplicamos "gradientes.py"
-		print('----------------------------------------------------------------- Fase de aprendizaje --------------------------------------------------------------------')
+		print('----------------------------------------------------------------- Modificación vector aprendizaje --------------------------------------------------------------------')
 		print('Vector aprendizaje actual:', vector_aprendizaje)
 		print('')
-		mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
-		onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
-		onlyfiles2 = natsorted(onlyfiles2)
-		images2 = numpy.empty(len(onlyfiles2), dtype=object)
 
 		if numero_bandas == 2:
 			#Secuencia 1
@@ -1018,7 +1016,7 @@ def funcion_principal():
 
 		elif numero_bandas == 3:
 			#Secuencia 1
-			vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+			vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
 			vector_imagen2 = [True, True, True]
 			vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
 			# #Secuencia 2
@@ -1058,10 +1056,20 @@ def funcion_principal():
 			print('Vector aprendizaje modificado:', vector_aprendizaje)
 			print('')
 		
-		indice_lectura_codigos = indice_lectura_codigos + 1			
+		indice_lectura_codigos = indice_lectura_codigos + 1	
+		end = time.time()
+		vector_tiempos.append(end-start)
+	print(vector_tiempos)	
 
 if __name__ == "__main__":              
 	funcion_principal()
+
+
+
+		# mypath2='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
+		# onlyfiles2 = [ f for f in listdir(mypath2) if isfile(join(mypath2,f)) ]
+		# onlyfiles2 = natsorted(onlyfiles2)
+		# images2 = numpy.empty(len(onlyfiles2), dtype=object)
 
 
 
