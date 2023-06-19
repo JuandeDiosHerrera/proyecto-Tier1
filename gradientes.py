@@ -12,7 +12,7 @@ from lineas import *
 def calcula_codigos(image, height, width):
 	plot_banda = 0
 	plot_gradientes = 0
-	plot_morfologia = 1
+	plot_morfologia = 0
 	edges, lines = Hough(image, 7) 
 
 	vector_alturas_unidas = []
@@ -147,7 +147,7 @@ def calcula_codigos(image, height, width):
 
 #Función principal de la etapa 3
 def funcion_principal():
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Dataset etapa 3'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
@@ -171,7 +171,7 @@ def funcion_principal():
 				cv2.drawContours(image_copy, [i], -1, (0, 255, 0), 6)
 				cv2.circle(image_copy, (cx, cy), 40, (255, 0, 0), -1)
 		
-		plot_deteccion = 1
+		plot_deteccion = 0
 		if plot_deteccion == 1:
 			plt.subplot(211),plt.imshow(images[n])
 			plt.title('Imagen original'), plt.xticks([]), plt.yticks([])
