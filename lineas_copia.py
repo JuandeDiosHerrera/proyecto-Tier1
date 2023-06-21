@@ -62,6 +62,8 @@ def configuracion_numero_bandas(numero_bandas):
 def Hough(imagen, numero_lineas_detectadas):
 	print('-------------------------------------------------------------------- Búsqueda de líneas horizontales --------------------------------------------------------------------')
 	edges = cv2.Canny(imagen,125,225,apertureSize=3,L2gradient=True)
+	filename = 'Contornos con Canny.jpg'
+	cv2.imwrite(filename, edges)
 	#Búsqueda de líneas horizontales: en el rango [87.5º,92.5º] -> aumento el umbral (threshold) de 25 en 25 hasta quedarme con menos de 10 líneas detectadas
 	lineas_detectadas = 2000
 	umbral = 100
@@ -416,12 +418,9 @@ def eliminacion_bandas_productos(height, numero_bandas, vector_mascara, vector_o
 #Divide la imagen en tantas franjas horizontales como número de bandas a identificar. Además, le calcula la transformada de Hough a cada banda en busca de líneas horizontales
 def Hough_franjas(numero_bandas, height, width, image, numero_lineas_a_detectar):
 	edges, lines = Hough(image, 30)
-	hough_completa = pintar_lineas(image, height, width, lines, None, None)	#Para pintar todas las líneas detectadas en la franja 1
-
 	filename = 'Hough a imagen completa.jpg'
-	hough_completa = cv2.cvtColor(hough_completa, cv2.COLOR_RGB2BGR)
-	cv2.imwrite(filename, hough_completa)
-
+	cv2.imwrite(filename, edges)
+	hough_completa = pintar_lineas(image, height, width, lines, None, None)	#Para pintar todas las líneas detectadas en la franja 1
 
 	plot_franjas = 0
 	plot_edges = 0
