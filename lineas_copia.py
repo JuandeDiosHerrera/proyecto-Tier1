@@ -900,7 +900,7 @@ def funcion():
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia1'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
@@ -998,11 +998,16 @@ def funcion():
 
 		primera_iter = 0
 
+		
 		#Copia del vector actual para comparar cuando eliminemos alguna pareja
 		vector_mascara_copia = vector_mascara
 
 		#Creamos la máscara con las bandas artificiales 
 		mascara2 = creacion_mascara(height, width, vector_mascara, flag = 0)	
+		filename = 'Binaria tras relleno artificial.jpg'
+		mascara2.dtype='uint8'
+		mascara2= mascara2 * 255
+		cv2.imwrite(filename, mascara2)
 
 		#Resultado las bandas artificiales
 		target1 = cv2.bitwise_and(images[n],images[n], mask=mascara2)
@@ -1071,7 +1076,7 @@ def funcion():
 
 		#METER LAS DIRECCIONES DE LOS ZOOMS EN UN VECTOR Y ASÍ IR RECORRIÉNDOLO
 		#Secuencia 1
-		vector_imagen1 = [True, False, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
+		vector_imagen1 = [True, True, True]	#Valores de la imagen 1 para la identificación de códigos de barras (False: detecta - True: no detecta)
 		vector_imagen2 = [True, True, False]
 		vector_imagen3 = [True, True, True]		#True: lee código - False: no lee código	
 

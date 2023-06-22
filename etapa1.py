@@ -9,17 +9,15 @@ import numpy
 from natsort import natsorted
 import sys
 
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas --- Separación con borde inferior de la banda de arriba --- Proximidad para eliminar banda ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 		 450 - 350 - 200	      --- 		 Límite inferior + 4 * ancho máximo		      --- 				400				 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 	     400 - 300 - 150 	      --- 		 Límite inferior + 3 * ancho máximo		      ---				350				 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 		 275 - 175 - 25		      --- 		 Límite inferior + 3 * ancho máximo		      ---				275				 ---	
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# --- 		5 		   --- 		 35 		 --- 			75  	  	  	 --- 	     150 				      --- 		 Límite inferior + 3 * ancho máximo		      ---								 ---
-# --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Número de bandas --- Líneas detectadas --- Proximidad para unir líneas --- Proximidad para pareja de líneas ---  Proximidad para eliminar banda ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		2 		   --- 		 15 		 --- 			175 		   	 --- 		 450 - 350 - 200	      --- 		 		400				  ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		3 		   --- 		 20 		 --- 			150 	  	  	 --- 	     400 - 300 - 150 	      --- 				350				  ---
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- 		4 		   --- 		 30 		 --- 			115  	  	  	 --- 		 275 - 175 - 25		      --- 		 		275				  ---	
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
 
 #Configuramos ciertas variables según el número de bandas que se deben identificar
 def configuracion_numero_bandas(numero_bandas):
@@ -346,7 +344,7 @@ def creacion_mascara(height, width, vector_mascara, flag):
 	return mascara
 
 #Función que crea bandas artificiales cuando no hemos sido capaces de formar todas las parejas a partir de las líneas detectadas por Hough. Para ello utiliza la suposición de que las bandas son equidistantes
-def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, primera_iter):
+def bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas):
 	print('-------------------------------------------------------------------- Relleno bandas artificiales --------------------------------------------------------------------')
 	#Miro la altura de las bandas ya detectadas y sabiendo que son equidistantes creo artificialmente las que queden 
 	#hasta llegar a "numero_de_parejas == numero_bandas -> hasta completar el vector de ocupación" 	
@@ -873,7 +871,7 @@ def funcion_principal():
 
 		#En caso de que falten bandas por detectar, las creo artificialmente aplicando la suposición de que son equidistantes
 		if numero_de_parejas < numero_bandas:
-			vector_mascara, numero_de_parejas, vector_ocupacion, separacion_bandas = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas, primera_iter)
+			vector_mascara, numero_de_parejas, vector_ocupacion, separacion_bandas = bandas_artificiales(height, numero_bandas, vector_mascara, vector_ocupacion, numero_de_parejas)
 
 		primera_iter = 0
 

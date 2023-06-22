@@ -6,7 +6,7 @@ from os import listdir
 from os.path import isfile, join
 import math
 import numpy
-from lineas import *
+from etapa1 import *
 
 #Función de la etapa 3. Busca líneas horizontales en la mitad de la imagen, ya que la imagen es solo la banda de la que estamos haciendo el barrido.
 def calcula_banda(image, height, width):
@@ -59,6 +59,8 @@ def calcula_banda(image, height, width):
 	cv2.imwrite(filename, target)
 	
 	target_gray = cv2.cvtColor(target, cv2.COLOR_RGB2GRAY)	
+	filename = 'Banda escala de grises.jpg'
+	cv2.imwrite(filename, target_gray)
 
 	if plot_banda == 1:
 		plt.subplot(131),plt.imshow(image)
@@ -235,7 +237,7 @@ def funcion():
 			if M['m00'] != 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-				cv2.drawContours(images[n], [i], -1, (0, 255, 0), 6)
+				cv2.drawContours(images[n], [i], -1, (255, 0, 0), 6)
 				cv2.circle(images[n], (cx, cy), 40, (255, 0, 0), -1)
 
 		filename = 'Codigos detectados centroide foto zoom.jpg'
