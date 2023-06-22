@@ -900,7 +900,7 @@ def funcion():
 
 	#Directorio donde se encuentran las imágenes de las estanterías al completo
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Foto para memoria'
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\Misma altura\\Secuencia4'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 	# mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos Mercadona\\3B'
 
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
