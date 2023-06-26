@@ -44,7 +44,7 @@ def funcion_principal():
 					y = int(corners[i][j][1])
 					lista_x.append(x)
 					lista_y.append(y)
-					cv2.circle(img_copy, (int(x),int(y)), 15, (255,0,0), -1) 
+					cv2.circle(img_copy, (int(x),int(y)), 40, (255,0,0), -1) 
 				print('Lista x:', lista_x)
 				print('Lista y:', lista_y)
 				print('')
