@@ -170,9 +170,9 @@ def funcion_principal():
 			if M['m00'] != 0:
 				cx = int(M['m10']/M['m00'])
 				cy = int(M['m01']/M['m00'])
-				cv2.drawContours(image_copy, [i], -1, (255, 255, 0), 6)
+				cv2.drawContours(image_copy, [i], -1, (255, 0, 0), 6)
 				cv2.circle(image_copy, (cx, cy), 40, (255, 0, 0), -1)
-		
+
 		plot_deteccion = 1
 		if plot_deteccion == 1:
 			plt.subplot(121),plt.imshow(images[n])
