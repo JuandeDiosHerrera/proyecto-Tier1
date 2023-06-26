@@ -7,7 +7,7 @@ import numpy
 objeto = cv2.barcode_BarcodeDetector()
 
 def funcion_principal():
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos codigos solos'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Dataset etapa 5'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):

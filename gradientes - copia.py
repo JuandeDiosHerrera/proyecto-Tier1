@@ -100,7 +100,7 @@ def calcula_banda(image, height, width):
 		plt.show()				
 
 	#Se binariza la imagen
-	umbral,binaria = cv2.threshold(gradient2,100,255,cv2.THRESH_BINARY)
+	umbral,binaria = cv2.threshold(gradient2,30,255,cv2.THRESH_BINARY)
 	filename = 'Binaria foto zoom.jpg'
 	cv2.imwrite(filename, binaria)
 
@@ -186,7 +186,7 @@ def calcula_banda(image, height, width):
 	return target, target_gray, blurred, binaria, closed, opened, dilated, masked, masked2, mascara_area
 
 def funcion():
-	mypath='E:\\Documents\\Juan de Dios\\TFG\\Fotos gasolinera\\Zoom'
+	mypath='E:\\Documents\\Juan de Dios\\TFG\\Dataset etapa 3'
 	onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]
 	images = numpy.empty(len(onlyfiles), dtype=object)
 	for n in range(0, len(onlyfiles)):
